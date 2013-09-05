@@ -1,0 +1,562 @@
+function varargout = ET(varargin)
+% ET MATLAB code for ET.fig
+%      ET, by itself, creates a new ET or raises the existing
+%      singleton*.
+%
+%      H = ET returns the handle to a new ET or the handle to
+%      the existing singleton*.
+%
+%      ET('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in ET.M with the given input arguments.
+%
+%      ET('Property','Value',...) creates a new ET or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before ET_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to ET_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help ET
+
+% Last Modified by GUIDE v2.5 01-Jul-2013 11:21:12
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+  'gui_Singleton',  gui_Singleton, ...
+  'gui_OpeningFcn', @ET_OpeningFcn, ...
+  'gui_OutputFcn',  @ET_OutputFcn, ...
+  'gui_LayoutFcn',  [] , ...
+  'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+  gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+  [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+  gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before ET is made visible.
+function ET_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to ET (see VARARGIN)
+
+% Choose default command line output for ET
+handles.output = hObject;
+
+% Set editing phase flag
+handles.Calibration_Edit_Phase = false;
+
+% Update handles structure
+guidata(hObject, handles);
+
+% Set base image colormap
+colormap(hot);
+
+% UIWAIT makes ET wait for user response (see UIRESUME)
+% uiwait(handles.Main_Figure);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = ET_OutputFcn(hObject, eventdata, handles)
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+% --- Executes on button press in Quit_Button.
+function Quit_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Quit_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+fprintf('ET : Exiting normally\n');
+close(handles.Main_Figure);
+
+
+% --- Executes on button press in Select_Cal_Video_Button.
+function Select_Cal_Video_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Select_Cal_Video_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Call universal loader function
+handles = ET_LoadEverything(handles);
+
+% Resave handles structure in GUI
+guidata(hObject, handles);
+
+
+% --- Executes on button press in Go_Button.
+function Go_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Go_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Call video preparation function with GUI parameters
+if isfield(handles,'p_run')
+  
+  % Run workflow
+  ET_RunWorkFlow(handles);
+  
+  % Update file checks
+  ET_CheckFiles(handles);
+  
+  % Save updates in GUI
+  guidata(hObject,handles);
+  
+else
+  
+  fprintf('ET : *** No initial pupil structure detected\n');
+  return
+  
+end
+
+
+% --- Executes on button press in Cal_Model_Reset_Button.
+function Cal_Model_Reset_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Cal_Model_Reset_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Gaze_Pupils_Reset_Button.
+function Gaze_Pupils_Reset_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Gaze_Pupils_Reset_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+gaze_pupils = fullfile(get(handles.CWD,'String'),'Gaze','Gaze_Pupils.mat');
+
+button = questdlg('Do you want to delete the gaze pupilometry?',...
+  'Confirm Delete','Yes','No','No');
+
+switch lower(button)
+  case 'yes'
+    if exist(gaze_pupils,'file')
+      delete(gaze_pupils);
+    end
+  otherwise
+    % Do nothing
+end
+
+% Refresh file checks
+ET_CheckFiles(handles);
+
+
+% --- Executes on button press in MRI_Correction_Check.
+function MRI_Correction_Check_Callback(hObject, eventdata, handles)
+% hObject    handle to MRI_Correction_Check (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of MRI_Correction_Check
+
+
+% --- Executes on button press in Cal_Pupils_Reset_Button.
+function Cal_Pupils_Reset_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Cal_Pupils_Reset_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+cal_pupils = fullfile(get(handles.CWD,'String'),'Gaze','Cal_Pupils.mat');
+
+button = questdlg('Do you want to delete the calibration pupilometry?',...
+  'Confirm Delete','Yes','No','No');
+
+switch lower(button)
+  case 'yes'
+    if exist(cal_pupils,'file')
+      delete(cal_pupils);
+    end
+  otherwise
+    % Do nothing
+end
+
+% Refresh file checks
+ET_CheckFiles(handles);
+
+
+function PD_Min_Callback(hObject, eventdata, handles)
+% hObject    handle to PD_Min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of PD_Min as text
+%        str2double(get(hObject,'String')) returns contents of PD_Min as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function PD_Min_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PD_Min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+  set(hObject,'BackgroundColor','white');
+end
+
+
+function PD_Max_Callback(hObject, eventdata, handles)
+% hObject    handle to PD_Max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of PD_Max as text
+%        str2double(get(hObject,'String')) returns contents of PD_Max as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function PD_Max_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to PD_Max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on slider movement.
+function Progress_Bar_Callback(hObject, eventdata, handles)
+% hObject    handle to Progress_Bar (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function Progress_Bar_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Progress_Bar (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on selection change in ROI_Rotation_Popup.
+function ROI_Rotation_Popup_Callback(hObject, eventdata, handles)
+% hObject    handle to ROI_Rotation_Popup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns ROI_Rotation_Popup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from ROI_Rotation_Popup
+
+% Refresh ROI image in GUI
+handles = ET_UpdateROIImage(handles);
+
+% Resave handles
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function ROI_Rotation_Popup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ROI_Rotation_Popup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in MRClean_Popup.
+function MRClean_Popup_Callback(hObject, eventdata, handles)
+% hObject    handle to MRClean_Popup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns MRClean_Popup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from MRClean_Popup
+
+
+% --- Executes during object creation, after setting all properties.
+function MRClean_Popup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to MRClean_Popup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in Gaze_Pupils_Checkbox.
+function Gaze_Pupils_Checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to Gaze_Pupils_Checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Gaze_Pupils_Checkbox
+
+% Get state of Calibration Model checkbox
+if get(hObject,'Value') == 0
+  
+  % State just changed to zero
+
+  button = questdlg('Do you want to delete the gaze pupilometry?',...
+    'Confirm Delete','Yes','No','No');
+
+  gaze_pupils = handles.gaze_pupils_file;
+  
+  switch lower(button)
+    case 'yes'
+      if exist(gaze_pupils,'file')
+        delete(gaze_pupils);
+        fprintf('ET : Gaze pupilometry deleted\n');
+      end
+    otherwise
+      % Do nothing
+  end
+
+  % Refresh file checks
+  ET_CheckFiles(handles);
+  
+else
+  
+  % Checkbox just set - can't be done manually, so unset again
+  set(hObject,'Value', 0);
+  
+end
+
+% --- Executes on button press in Cal_Pupils_Checkbox.
+function Cal_Pupils_Checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to Cal_Pupils_Checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Cal_Pupils_Checkbox
+
+% Get state of Calibration Model checkbox
+if get(hObject,'Value') == 0
+  
+  % State just changed to zero
+
+  button = questdlg('Do you want to delete the caibration pupilometry?',...
+    'Confirm Delete','Yes','No','No');
+
+  cal_pupils = handles.cal_pupils_file;
+  
+  switch lower(button)
+    case 'yes'
+      if exist(cal_pupils,'file')
+        delete(cal_pupils);
+        fprintf('ET : Calibration pupilometry deleted\n');
+      end
+    otherwise
+      % Do nothing
+  end
+
+  % Refresh file checks
+  ET_CheckFiles(handles);
+  
+else
+  
+  % Checkbox just set - can't be done manually, so unset again
+  set(hObject,'Value', 0);
+  
+end
+
+
+% --- Executes on button press in Cal_Model_Checkbox.
+function Cal_Model_Checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to Cal_Model_Checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Cal_Model_Checkbox
+
+% Get state of Calibration Model checkbox
+if get(hObject,'Value') == 0
+  
+  % State just changed to zero
+
+  button = questdlg('Do you want to delete the calibration model?',...
+    'Confirm Delete','Yes','No','No');
+
+  calibration_file = handles.calibration_file;
+  
+  switch lower(button)
+    case 'yes'
+      if exist(calibration_file,'file')
+        delete(calibration_file);
+        fprintf('ET : Calibration model deleted\n');
+      end
+    otherwise
+      % Do nothing
+  end
+
+  % Refresh file checks
+  ET_CheckFiles(handles);
+  
+else
+  
+  % Checkbox just set - can't be done manually, so unset again
+  set(hObject,'Value', 0);
+  
+end
+
+
+
+function edit11_Callback(hObject, eventdata, handles)
+% hObject    handle to edit11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit11 as text
+%        str2double(get(hObject,'String')) returns contents of edit11 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit11_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Screen_Width_Callback(hObject, eventdata, handles)
+% hObject    handle to Screen_Width (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Screen_Width as text
+%        str2double(get(hObject,'String')) returns contents of Screen_Width as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Screen_Width_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Screen_Width (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Screen_Height_Callback(hObject, eventdata, handles)
+% hObject    handle to Screen_Height (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Screen_Height as text
+%        str2double(get(hObject,'String')) returns contents of Screen_Height as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Screen_Height_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Screen_Height (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in Pupil_Thresh_Popup.
+function Pupil_Thresh_Popup_Callback(hObject, eventdata, handles)
+% hObject    handle to Pupil_Thresh_Popup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns Pupil_Thresh_Popup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from Pupil_Thresh_Popup
+
+
+% --- Executes during object creation, after setting all properties.
+function Pupil_Thresh_Popup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Pupil_Thresh_Popup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Pupil_Threshold_Callback(hObject, eventdata, handles)
+% hObject    handle to Pupil_Threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Pupil_Threshold as text
+%        str2double(get(hObject,'String')) returns contents of Pupil_Threshold as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Pupil_Threshold_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Pupil_Threshold (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on mouse press over axes background.
+function Calibration_Axes_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to Calibration_Axes (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Respond to mouse only during edit phase
+if handles.Edit_Phase
+  
+  fprintf('ET : Edit phase mouse button down');
+  
+end
+
+
+% --- Executes on button press in Accept_Edits_Button.
+function Accept_Edits_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Accept_Edits_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
