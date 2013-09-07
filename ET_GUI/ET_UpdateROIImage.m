@@ -9,7 +9,12 @@ function handles = ET_UpdateROIImage(handles)
 % All rights reserved.
 
 % Get poster frame from GUI
-fr = handles.video_poster_frame;
+if isfield(handles,'video_poster_frame')
+  fprintf('ET : No video poster frame detected - returning\n');
+  fr = handles.video_poster_frame;
+else
+  return
+end
 
 % Grab PD range from GUI
 pd_min = str2double(get(handles.PD_Min,'String'));

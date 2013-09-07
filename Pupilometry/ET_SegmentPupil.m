@@ -1,7 +1,11 @@
-function [bw, p_seg] = ET_SegmentPupil(s, p_init, pupil_se, DEBUG)
-% Binarize pupil image
-% - various threshold estimations offered
+function [bw, p_seg] = ET_SegmentPupil(s, p_init, pupil_se, thresh_mode, DEBUG)
+% Segment pupil within image
+%
+% Various threshold estimations offered including:
+% - histogram threshold (first minimum above zero)
 % - kmeans approach from Swirski et al
+% - percentile (15% of histogram)
+% - hard (fixed manual threshold)
 %
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
@@ -17,14 +21,7 @@ function [bw, p_seg] = ET_SegmentPupil(s, p_init, pupil_se, DEBUG)
 if nargin < 4; DEBUG = false; end
 
 % Morphological opening on scale of pupil
-% s = imopen(s, pupil_se);
-
-% Threshold estimation mode:
-% 'histogram' - first minimum of smoothed histogram
-% 'percentile' - fixed percentile of image intensity
-% 'kmeans' - k-means intensity segmentation
-% 'hard' - fixed threshold level
-thresh_mode = 'kmeans';
+s = imopen(s, pupil_se);
 
 % Init return pupil
 p_seg = p_init;

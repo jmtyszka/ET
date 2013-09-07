@@ -1,4 +1,4 @@
-function p_new = ET_RefinePupil(fr, roi, p_init, options)
+function p_new = ET_RefinePupil(fr, roi, p_init, thresh_mode, options)
 % Find regions, identify pupil and fit ellipse to boundary
 %
 % ARGS:
@@ -17,7 +17,7 @@ function p_new = ET_RefinePupil(fr, roi, p_init, options)
 % All rights reserved.
 
 % Flags
-DEBUG = false;
+DEBUG = true;
 
 % Default arguments
 if nargin < 3
@@ -45,7 +45,7 @@ fr_roi = imadjust(fr_roi);
 
 % Binarize image
 % Estimate threshold by kmeans if currently NaN
-[bw_pupil, p_seg] = ET_SegmentPupil(fr_roi_noglints, p_init, options.pupil_se, DEBUG);
+[bw_pupil, p_seg] = ET_SegmentPupil(fr_roi_noglints, p_init, options.pupil_se, thresh_mode, DEBUG);
 
 % Try fitting pupil ellipse to segmented image
 p_new = ET_FitPupil(bw_pupil, p_seg);

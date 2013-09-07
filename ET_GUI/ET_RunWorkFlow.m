@@ -16,8 +16,19 @@ fprintf('ET : Starting workflow at %s\n', datestr(now));
 
 %% Calibration pupilometry
 
-% Check to see if 
-if isempty(handles.cal_pupils)
+% Check to see if the calibration pupilometry structure has been created
+% and filled
+do_cal_pupils = false;
+if isfield(handles,'cal_pupils')
+  if isempty(handles.cal_pupils)
+    do_cal_pupils = true;
+  end
+else
+  do_cal_pupils = true;
+end
+
+% Peform calibration analysis as needed
+if do_cal_pupils
   
   % Run calibration pupilometry
   % Results are saved to the Gaze directory
@@ -57,7 +68,18 @@ end
 
 %% Calibration model
 
-if isempty(handles.calibration)
+% Check to see if the calibration model has been created and filled
+do_calibration = false;
+if isfield(handles,'calibration')
+  if isempty(handles.calibration)
+    do_calibration = true;
+  end
+else
+  do_calibration = true;
+end
+
+% Perform calibration model fitting as required
+if do_calibration
   
   % Calculate calibration model and add to handles
   fprintf('ET : Creating calibration model\n');
@@ -83,7 +105,17 @@ end
 
 %% Gaze video analysis
 
-if isempty(handles.gaze_pupils)
+% Check to see if gaze pupilometry structure has been created and filled
+do_gaze_pupils = false;
+if isfield(handles,'gaze_pupils')
+  if isempty(handles.gaze_pupils)
+    do_gaze_pupils = true;
+  end
+else
+  do_gaze_pupils = true;
+end
+
+if do_gaze_pupils
   
   % Input video file name
   video_infile = handles.gaze_video_path;

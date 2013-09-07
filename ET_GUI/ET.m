@@ -504,6 +504,22 @@ function Pupil_Thresh_Popup_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns Pupil_Thresh_Popup contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from Pupil_Thresh_Popup
 
+fprintf('ET : Changing pupil threshold method\n');
+
+% Ungray manual threshold input if Hard (option 4) selected
+switch get(hObject,'Value')
+  case 4
+    set(handles.Pupil_Threshold,'Enable','on');
+  otherwise
+    set(handles.Pupil_Threshold,'Enable','off');
+end
+
+% Update ROI image in GUI using new threshold
+handles = ET_UpdateROIImage(handles);
+
+% Resave handles
+guidata(hObject,handles)
+
 
 % --- Executes during object creation, after setting all properties.
 function Pupil_Thresh_Popup_CreateFcn(hObject, eventdata, handles)
