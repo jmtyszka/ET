@@ -6,8 +6,22 @@ function [bw_glint, fr_noglints] = ET_FindRemoveGlints(fr, DEBUG)
 % DATES  : 01/18/2013 JMT Extract from ET_FitPupilGlint_Regions.m
 %                         Add glint removal
 %
-% Copyright 2013 California Institute of Technology
-% All rights reserved.
+% This file is part of ET.
+% 
+%     ET is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     ET is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%
+% Copyright 2013 California Institute of Technology.
 
 % Defaults
 if nargin < 2; DEBUG = false; end

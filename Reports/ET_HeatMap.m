@@ -7,9 +7,22 @@ function [heat_map, xv, yv] = ET_HeatMap(x, y, sigma, is_calibrated)
 % pupils = structure array of pupil information for each frame
 % do_smooth = smoothing flag (for fixation search)
 %
-% AUTHOR : Mike Tyszka
-% PLACE  : Caltech
-% DATES  : 10/15/2011 JMT From scratch
+% This file is part of ET.
+% 
+%     ET is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     ET is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%
+% Copyright 2013 California Institute of Technology.
 
 if nargin < 2; sigma = 0; end
 if nargin < 4; is_calibrated = false; end

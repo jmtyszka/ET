@@ -1,10 +1,9 @@
 function y = ET_MovingMedFilt(x, k)
-%
-% y = ET_MovingMedFilt(x, w)
-%
 % 1D median filter x using a w sample kernel, ignoring NaNs
 %
-% ARGS:
+% USAGE : y = ET_MovingMedFilt(x, k)
+%
+% ARGS :
 % x = vector of uniformly sampled values
 % k = filter kernel width [3]
 %
@@ -13,6 +12,23 @@ function y = ET_MovingMedFilt(x, k)
 % DATES  : 05/31/00 Add index range
 %          06/01/00 Remove index range
 %          08/09/00 Add defaults and syntax message
+%
+% This file is part of ET.
+% 
+%     ET is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     ET is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+%
+% Copyright 2013 California Institute of Technology.
 
 if nargin < 1
    fprintf('SYNTAX: y = ET_MovingMedFilt(x,k)\n');
