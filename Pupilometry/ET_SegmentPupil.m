@@ -1,4 +1,4 @@
-function [bw, p_seg] = ET_SegmentPupil(s, p_init, pupil_se, thresh_mode, DEBUG)
+function [bw, p_seg] = ET_SegmentPupil(s, p_init, options)
 % Segment pupil within image
 %
 % Various threshold estimations offered including:
@@ -18,10 +18,11 @@ function [bw, p_seg] = ET_SegmentPupil(s, p_init, pupil_se, thresh_mode, DEBUG)
 % All rights reserved.
 
 % Default arguments
-if nargin < 4; DEBUG = false; end
+if nargin < 4; options.debug = false; end
 
 % Morphological opening on scale of pupil
-s = imopen(s, pupil_se);
+% JMT Omit for now - slows down frame rate significantly
+% s = imopen(s, options.pupil_se);
 
 % Init return pupil
 p_seg = p_init;
@@ -31,13 +32,9 @@ th = p_init.thresh;
 
 if isnan(th)
   
-  switch lower(thresh_mode)
-    
-    case 'histogram'
-      % First minimum of smoothed histogram
-      th = ET_HistThresh(s);
-      
-    case 'kmeans'
+  switch lower(options.thresh_mode)
+          
+    case 'k-means'
       % Three cluster 1D k-means segmentation of image
       th = ET_KmeansThresh(s);
       
@@ -45,15 +42,24 @@ if isnan(th)
       % Pupil should occupy approx darkest 15% of pixels within ROI
       th = ET_Percentile(s, 15);
       
-    case 'hard'
+    case 'histogram'
+      % First minimum of smoothed histogram
+      th = ET_HistThresh(s);
       
-      % Hard threshold at 0.15
+    case 'manual'
+      
+      % Manual fixed threshold
+      th = options.manual_thresh;
+      
+    otherwise
+      
+      % Set a fixed threshold at 15% full scale
       th = 0.15;
       
   end
   
-  if DEBUG
-    fprintf('ET : Pupil threshold estimated at %0.3f (%s)\n', th, thresh_mode);
+  if options.debug
+    fprintf('ET : Pupil threshold estimated at %0.3f (%s)\n', th, options.thresh_mode);
   end
   
 end
@@ -69,12 +75,12 @@ end
 bw_raw = s < th;
 
 % Binary morph open
-bw = imopen(bw_raw, pupil_se);
+bw = imopen(bw_raw, options.pupil_se);
 
 % Save threshold in returned pupil structure
 p_seg.thresh = th;
 
-if DEBUG
+if options.debug
   
   figure(30); colormap(gray)
   

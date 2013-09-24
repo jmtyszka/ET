@@ -22,7 +22,7 @@ function varargout = ET(varargin)
 
 % Edit the above text to modify the response to help ET
 
-% Last Modified by GUIDE v2.5 01-Jul-2013 11:21:12
+% Last Modified by GUIDE v2.5 12-Sep-2013 16:04:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,8 +55,8 @@ function ET_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for ET
 handles.output = hObject;
 
-% Set editing phase flag
-handles.Calibration_Edit_Phase = false;
+% Init stop button flag to false
+handles.stop_pressed = false;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -326,16 +326,23 @@ if get(hObject,'Value') == 0
   button = questdlg('Do you want to delete the gaze pupilometry?',...
     'Confirm Delete','Yes','No','No');
 
-  gaze_pupils = handles.gaze_pupils_file;
-  
-  switch lower(button)
-    case 'yes'
-      if exist(gaze_pupils,'file')
-        delete(gaze_pupils);
+  if isfield(handles,'gaze_pupils_file')
+    
+    switch lower(button)
+      case 'yes'
+        % Delete gaze pupilometry data in Gaze subdirectory and GUI
+        delete(fullfile(handles.gaze_dir,'Gaze*'));
+        delete(fullfile(handles.gaze_dir,'gaze*'));
+        handles.gaze_pupils = [];
         fprintf('ET : Gaze pupilometry deleted\n');
-      end
-    otherwise
-      % Do nothing
+      otherwise
+        % Do nothing
+    end
+    
+  else
+    
+    fprintf('ET : Gaze pupilometry file undefined in GUI\n');
+    
   end
 
   % Refresh file checks
@@ -364,14 +371,13 @@ if get(hObject,'Value') == 0
   button = questdlg('Do you want to delete the caibration pupilometry?',...
     'Confirm Delete','Yes','No','No');
 
-  cal_pupils = handles.cal_pupils_file;
-  
   switch lower(button)
     case 'yes'
-      if exist(cal_pupils,'file')
-        delete(cal_pupils);
-        fprintf('ET : Calibration pupilometry deleted\n');
-      end
+      % Delete calibration pupilometry data and model in Gaze subdirectory and GUI
+      delete(fullfile(handles.gaze_dir,'Cal*'));
+      delete(fullfile(handles.gaze_dir,'cal*'));
+      handles.cal_pupils = [];
+      fprintf('ET : Calibration pupilometry deleted\n');
     otherwise
       % Do nothing
   end
@@ -504,8 +510,6 @@ function Pupil_Thresh_Popup_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns Pupil_Thresh_Popup contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from Pupil_Thresh_Popup
 
-fprintf('ET : Changing pupil threshold method\n');
-
 % Ungray manual threshold input if Hard (option 4) selected
 switch get(hObject,'Value')
   case 4
@@ -513,6 +517,10 @@ switch get(hObject,'Value')
   otherwise
     set(handles.Pupil_Threshold,'Enable','off');
 end
+
+thresh_modes = get(handles.Pupil_Thresh_Popup, 'String');
+thresh_mode = thresh_modes{get(handles.Pupil_Thresh_Popup, 'Value')};
+fprintf('ET : Pupil threshold method set to %s\n', thresh_mode);
 
 % Update ROI image in GUI using new threshold
 handles = ET_UpdateROIImage(handles);
@@ -542,6 +550,12 @@ function Pupil_Threshold_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of Pupil_Threshold as text
 %        str2double(get(hObject,'String')) returns contents of Pupil_Threshold as a double
+
+% Update ROI image in GUI using new manual threshold
+handles = ET_UpdateROIImage(handles);
+
+% Resave handles
+guidata(hObject,handles)
 
 
 % --- Executes during object creation, after setting all properties.
@@ -576,3 +590,25 @@ function Accept_Edits_Button_Callback(hObject, eventdata, handles)
 % hObject    handle to Accept_Edits_Button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Stop_Button.
+function Stop_Button_Callback(hObject, eventdata, handles)
+% hObject    handle to Stop_Button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+fprintf('ET : Stop button pressed\n');
+handles.stop_pressed = true;
+
+% Resave handles data
+guidata(hObject, handles);
+
+
+% --- Executes on button press in Debug_Toggle.
+function Debug_Toggle_Callback(hObject, eventdata, handles)
+% hObject    handle to Debug_Toggle (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Debug_Toggle

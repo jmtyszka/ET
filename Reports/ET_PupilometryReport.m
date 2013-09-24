@@ -1,4 +1,4 @@
-function ET_PupilometryReport(gaze_dir, cal_pupils, calibration, gaze_pupils, gaze_filt)
+function ET_PupilometryReport(handles)
 %ET_PUPILOMETRYREPORT Create an HTML report for a pupilometry run
 %
 % ET_PupilometryReport(gaze_dir, cal_pupils, calibration, gaze_pupils, gaze_0)
@@ -9,6 +9,13 @@ function ET_PupilometryReport(gaze_dir, cal_pupils, calibration, gaze_pupils, ga
 %
 % Copyright 2013 California Institute of Technology
 % All rights reserved.
+
+% Extract relevant fields from handles structure
+gaze_dir    = handles.gaze_dir;
+cal_pupils  = handles.cal_pupils;
+calibration = handles.calibration;
+gaze_pupils = handles.gaze_pupils;
+gaze_filt   = handles.gaze_filt;
 
 % HTML report filename
 report_file = fullfile(gaze_dir,'Report.html');

@@ -1,4 +1,4 @@
-function ET_ShowCalibration(calibration, handles)
+function ET_ShowCalibration(handles)
 % Show calibration in GUI
 %
 % ET_ShowCalibration(calibration, handles)
@@ -20,9 +20,9 @@ function ET_ShowCalibration(calibration, handles)
 %% Show calibration heat map and fixation overlay in GUI
 
 % Extract fixations from calibration structure
-fx        = calibration.fx;
-fy        = calibration.fy;
-fixations = calibration.fixations;
+fx        = handles.calibration.fx;
+fy        = handles.calibration.fy;
+fixations = handles.calibration.fixations;
 
 % Smoothed heatmap in GUI calibration axes
 imagesc(fixations.xv, fixations.yv, fixations.hmap, 'parent', handles.Calibration_Axes)

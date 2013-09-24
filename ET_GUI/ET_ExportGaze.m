@@ -1,8 +1,13 @@
-function ET_ExportGaze(gaze_dir, gaze, gaze_filt)
+function ET_ExportGaze(handles)
 % Export subset of gaze timeseries as space-delimited text into Gaze
 % directory
 
 if nargin < 1; return; end
+
+% Extract relevant fields from handles structure
+gaze_dir    = handles.gaze_dir;
+gaze_pupils = handles.gaze_pupils;
+gaze_filt   = handles.gaze_filt;
 
 if ~exist(gaze_dir,'dir')
   fprintf('ET : Gaze directory does not exist - returning\n');
@@ -14,16 +19,16 @@ gaze_text = fullfile(gaze_dir,'Gaze_Pupils.txt');
 fprintf('ET : Exporting gaze results to %s\n', gaze_text);
 
 % Extract essential timeseries
-t         = [gaze.t];
-gaze_x    = [gaze.gaze_x];
-gaze_y    = [gaze.gaze_x];
-area_corr = [gaze.area_correct];
-px        = [gaze.px];
-py        = [gaze.py];
-gx        = [gaze.gx];
-gy        = [gaze.gy];
-area      = [gaze.area];
-blink     = [gaze.blink];
+t         = [gaze_pupils.t];
+gaze_x    = [gaze_pupils.gaze_x];
+gaze_y    = [gaze_pupils.gaze_x];
+area_corr = [gaze_pupils.area_correct];
+px        = [gaze_pupils.px];
+py        = [gaze_pupils.py];
+gx        = [gaze_pupils.gx];
+gy        = [gaze_pupils.gy];
+area      = [gaze_pupils.area];
+blink     = [gaze_pupils.blink];
 
 % Spike and drift corrected gaze timeseries
 gaze_filt_x = gaze_filt.x;

@@ -70,9 +70,8 @@ video_mode = 'interlaced';   % Assume interlaced source for now
 fps_p      = 29.98;          % Progressive frame rate
 fps_i      = 2 * fps_p;      % Interlaced frame rate
 
-%% Refine pupil options
-refine_options.pupil_se = strel('disk',fix(p_init.pd_eff/8));
-refine_options.glint_se = strel('disk',2);
+% Setup refine pupil options from GUI
+options = ET_GetRefinePupilOptions(handles);
 
 %% Start scanning for pupils
 
@@ -127,7 +126,7 @@ for pc = 1:n_frames
     fr = fr_pair(:,:,ic);
     
     % Refine pupil parameter estimates
-    p_new = ET_RefinePupil(fr, roi, p_run, refine_options);
+    p_new = ET_RefinePupil(fr, roi, p_run, options);
     
     % Add timestamp for this pupil
     switch lower(video_mode)
@@ -161,7 +160,7 @@ for pc = 1:n_frames
     pupil_overlay = ET_OverlayPupil(fr, roi, p_run);
     imshow(pupil_overlay, 'parent', handles.Eye_Video_Axes);
     
-    % Show calibrated gaze position in GUI
+    % Show calibrated gaze position in GUI if calibration model exists
     if ~isempty(C)
       ET_PlotGaze(p_run, handles.Gaze_Axes, 'plot');
     end
@@ -184,6 +183,17 @@ for pc = 1:n_frames
     
   end
   
+  % Check for stop button press
+  handles = guidata(handles.Main_Figure);
+  if handles.stop_pressed
+
+    % Reset stop button flag and exit loop
+    fprintf('ET : Stop detected in video pupilometry - exiting\n');
+    handles.stop_pressed = false;
+    break
+    
+  end
+  
 end % Movie loop
 
 % Stop timer
@@ -201,7 +211,7 @@ fprintf('Total time : %0.1f s\n', tt);
 fprintf('Mean rate  : %0.1f fps\n', n_frames * 2 / tt);
 
 % Save pupilometry results in Gaze subdirectory
-save(pupils_file,'pupils');
+save(pupils_file,'pupils','roi');
 
 % Clean up
 clear v_in

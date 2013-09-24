@@ -57,12 +57,15 @@ if do_cal_pupils
     do_mrclean, ...
     handles);
   
+  % Save calibration pupils in GUI
+  handles.cal_pupils = cal_pupils;
+  
   % Update GUI checks
   handles = ET_CheckFiles(handles);
   
 else
   
-  fprintf('ET : Calibration pupilometry already loaded');
+  fprintf('ET : Calibration pupilometry already loaded\n');
   
 end
 
@@ -85,7 +88,7 @@ if do_calibration
   fprintf('ET : Creating calibration model\n');
   
   % Run autocalibration
-  calibration = ET_AutoCalibrate([cal_pupils.px], [cal_pupils.py]);
+  calibration = ET_AutoCalibrate([handles.cal_pupils.px], [handles.cal_pupils.py]);
   
   % Return if ET_Cal is empty (problem with auto calibration)
   if isempty(calibration.C)
@@ -93,15 +96,17 @@ if do_calibration
     return
   end
   
-  ET_ShowCalibration(calibration, handles);
-  
   % Save calibration model
   save(handles.calibration_file, 'calibration');
+  handles.calibration = calibration;
   
   % Update GUI checks
   handles = ET_CheckFiles(handles);
   
 end
+
+% Display the current calibration model in the GUI
+ET_ShowCalibration(handles);
 
 %% Gaze video analysis
 
@@ -136,33 +141,39 @@ if do_gaze_pupils
     handles.gaze_pupils_file, ...
     handles.roi, ...
     handles.p_run, ...
-    calibration.C, ...
+    handles.calibration.C, ...
     do_mrclean, ...
     handles);
+  
+  % Save gaze pupils in GUI
+  handles.gaze_pupils = gaze_pupils;
+  
+  % Update GUI checks
+  handles = ET_CheckFiles(handles);
   
 end
 
 %% Run spike and drift corrections
 
 % Sampling interval
-t = [gaze_pupils.t];
+t = [handles.gaze_pupils.t];
 dt = t(2) - t(1);
 
 % Uncorrected gaze timeseries
-x = [gaze_pupils.gaze_x];
-y = [gaze_pupils.gaze_y];
-a0 = [gaze_pupils.area_correct];
+x  = [handles.gaze_pupils.gaze_x];
+y  = [handles.gaze_pupils.gaze_y];
+a0 = [handles.gaze_pupils.area_correct];
 
 % Despike and drift correct
-gaze_filt = ET_SpikeDriftCorrect(x,y,a0,dt);
+handles.gaze_filt = ET_SpikeDriftCorrect(x,y,a0,dt);
 
 %% Create HTML report
 
-ET_PupilometryReport(handles.gaze_dir, cal_pupils, calibration, gaze_pupils, gaze_filt);
+ET_PupilometryReport(handles);
 
 %% Export text results
 
-ET_ExportGaze(handles.gaze_dir, gaze_pupils, gaze_filt);
+ET_ExportGaze(handles);
 
 %% Postamble
 

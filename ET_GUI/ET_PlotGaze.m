@@ -11,14 +11,18 @@ function ET_PlotGaze(p, h, mode)
 switch lower(mode)
   
   case 'plot'
-    hold on
+    
+    % Remember to use plot handle for all operations, focus may shift
+    hold(h,'on');
     plot(p.gaze_x, p.gaze_y,'go',...
       'markersize',3,...
       'markerfacecolor','g',...
       'parent',h);
-    hold off
+    hold(h,'off');
     
   case 'init'
+    
+    % Plot graticule and set background to black
     plot([0.1 0.5 0.9 0.1 0.5 0.9 0.1 0.5 0.9], [0.1 0.1 0.1 0.5 0.5 0.5 0.9 0.9 0.9], 'w+', 'parent', h);
     set(h,'color','k');
     set(h,'xlim',[0 1],'ylim',[0 1]);

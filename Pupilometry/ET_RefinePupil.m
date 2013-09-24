@@ -1,4 +1,4 @@
-function p_new = ET_RefinePupil(fr, roi, p_init, thresh_mode, options)
+function p_new = ET_RefinePupil(fr, roi, p_init, options)
 % Find regions, identify pupil and fit ellipse to boundary
 %
 % ARGS:
@@ -16,17 +16,18 @@ function p_new = ET_RefinePupil(fr, roi, p_init, thresh_mode, options)
 % Copyright 2011-2013 California Institute of Technology
 % All rights reserved.
 
-% Flags
-DEBUG = true;
-
 % Default arguments
 if nargin < 3
   p_new = p_init;
   return
 end
 
+% Create default options structure if absent
 if nargin < 4
   options.pupil_se = strel('disk',fix(p_init/2));
+  options.thresh_mode = 'histogram';
+  options.manual_thresh = 0.15;
+  options.debug = false;
 end
 
 % Extract ROI from frame
@@ -39,13 +40,13 @@ fr_roi = rot90(fr_roi, fix(roi.rotation/90));
 fr_roi = imadjust(fr_roi);
 
 % Find and remove glints first
-[bw_glint, fr_roi_noglints] = ET_FindRemoveGlints(fr_roi, DEBUG);
+[bw_glint, fr_roi_noglints] = ET_FindRemoveGlints(fr_roi, options.debug);
 
 %% Segment pupil within ROI
 
 % Binarize image
 % Estimate threshold by kmeans if currently NaN
-[bw_pupil, p_seg] = ET_SegmentPupil(fr_roi_noglints, p_init, options.pupil_se, thresh_mode, DEBUG);
+[bw_pupil, p_seg] = ET_SegmentPupil(fr_roi_noglints, p_init, options);
 
 % Try fitting pupil ellipse to segmented image
 p_new = ET_FitPupil(bw_pupil, p_seg);
@@ -57,7 +58,7 @@ p_new.ry0 = roi.y0;
 p_new.ry1 = roi.y1;
   
 % Identify main glint
-glint = ET_IdentifyMainGlint(bw_glint, p_new, DEBUG);
+glint = ET_IdentifyMainGlint(bw_glint, p_new, options.debug);
 
 % Fill glint fields
 p_new.gx     = glint.gx;

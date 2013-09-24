@@ -10,9 +10,9 @@ function handles = ET_UpdateROIImage(handles)
 
 % Get poster frame from GUI
 if isfield(handles,'video_poster_frame')
-  fprintf('ET : No video poster frame detected - returning\n');
   fr = handles.video_poster_frame;
 else
+  fprintf('ET : No video poster frame detected - returning\n');
   return
 end
 
@@ -38,12 +38,15 @@ rots = [0 90 -90 180];
 handles.roi.rotation = rots(get(handles.ROI_Rotation_Popup, 'Value'));
 
 % Setup refine options
-handles.refine_options.pupil_se = strel('disk',fix(p_init.pd_eff/4));
-handles.refine_options.glint_se = strel('disk',3);
-  
+options = ET_GetRefinePupilOptions(handles);
+
 % Refine pupil parameter estimates
-handles.p_run = ET_RefinePupil(fr, handles.roi, p_init, handles.refine_options);
+handles.p_run = ET_RefinePupil(fr, handles.roi, p_init, options);
  
 % Display ROI image with pupilometry overlay
 fr_over = ET_OverlayPupil(fr, handles.roi, handles.p_run);
 imshow(fr_over, 'parent', handles.Eye_Video_Axes);
+
+% Save refine pupil options in handles structure
+handles.refine_options = options;
+
