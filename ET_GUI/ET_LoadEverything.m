@@ -23,7 +23,8 @@ function handles = ET_LoadEverything(handles)
 % Copyright 2013 California Institute of Technology
 
 % Open a file browser
-[fname, dir_name] = uigetfile({'*.mov;*.avi;*.mpg','Supported video formats'},...
+% edit JD 9/27/13 added .mp4
+[fname, dir_name] = uigetfile({'*.mov;*.avi;*.mpg;*.mp4','Supported video formats'},...
   'Select calibration video file');
 if isequal(fname,0) || isequal(dir_name,0)
   return
