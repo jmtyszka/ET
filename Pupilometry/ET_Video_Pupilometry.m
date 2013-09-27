@@ -19,6 +19,7 @@ function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file,
 %          01/28/2013 JMT Rewrite to allow standalone operation
 %          02/01/2013 JMT Switch to VideoUtils for I/O
 %          04/18/2013 JMT Add glint use for moco
+%          09/26/2013  JD use VideoWriter instead of VideoRecorder
 %
 % This file is part of ET.
 % 
@@ -68,7 +69,11 @@ end
 % Create output video object (AVI file)
 % Use video_infile to generate a file stub
 try
-  v_out = VideoRecorder(video_outfile, 'Format', 'mov', 'Size', [256 256]);
+    %%%%EDIT JD 9/26/13
+    %   v_out = VideoRecorder(video_outfile, 'Format', 'mov', 'Size', [256 256]);
+    v_out = VideoWriter(video_outfile);
+    open(v_out);
+    %%%
 catch VIDEO_OUT_OPEN
   fprintf('*** Problem opening output video file\n');
   rethrow(VIDEO_OUT_OPEN);
@@ -182,8 +187,10 @@ for pc = 1:n_frames
     drawnow;
     
     % Write frame to output video file
-    v_out.addFrame(pupil_overlay);
-    
+    %%% edit JD 9/26/13
+    % v_out.addFrame(pupil_overlay);
+    writeVideo(v_out,pupil_overlay);
+    %%%
     % Update progress bar
     if ~isempty(handles.Progress_Bar)
       set(handles.Progress_Bar,'Value', pc/n_frames);
@@ -217,6 +224,8 @@ tt = toc;
 if ~isempty(handles.Progress_Bar)
   set(handles.Progress_Bar,'Value', 1);
 end
+
+close(v_out);
 
 % Report processing metrics
 fprintf('--------------------------\n');
