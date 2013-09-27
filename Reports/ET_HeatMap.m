@@ -24,6 +24,7 @@ function [heat_map, xv, yv] = ET_HeatMap(x, y, sigma, is_calibrated)
 %
 % Copyright 2013 California Institute of Technology.
 
+
 if nargin < 2; sigma = 0; end
 if nargin < 4; is_calibrated = false; end
 if isempty(sigma); sigma = 0; end
@@ -42,9 +43,10 @@ if is_calibrated
 else
   
   % Find robust limits for input coordinates
-  xp = percentile(x,[1 99]);
-  yp = percentile(y,[1 99]);
-  
+%   xp = percentile(x,[1 99]);
+%   yp = percentile(y,[1 99]);
+   xp = prctile(x,[1 99]);
+  yp = prctile(y,[1 99]);
   min_x = xp(1); max_x = xp(2);
   min_y = yp(1); max_y = yp(2);
   
