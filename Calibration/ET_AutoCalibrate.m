@@ -1,4 +1,4 @@
-function calibration = ET_AutoCalibrate(px, py)
+function calibration = ET_AutoCalibrate(px, py, handle)
 % Calculate video to gaze calibration model
 %
 % calibration = ET_AutoCalibrate(px, py)
@@ -42,6 +42,9 @@ calibration.fixations = [];
 
 % Raw fixations in video frame of reference
 fixations = ET_FindFixations_Heat(px, py);
+
+% Manual fixation picking
+fixations = ET_PickFixations(fixations, handle);
 
 % Sort fixations
 [fx, fy] = ET_SortFixations(fixations);

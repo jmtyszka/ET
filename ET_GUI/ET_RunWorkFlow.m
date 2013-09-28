@@ -100,9 +100,9 @@ if do_calibration
   
   % Calculate calibration model and add to handles
   fprintf('ET : Creating calibration model\n');
-  
+
   % Run autocalibration
-  calibration = ET_AutoCalibrate([handles.cal_pupils.px], [handles.cal_pupils.py]);
+  calibration = ET_AutoCalibrate([handles.cal_pupils.px], [handles.cal_pupils.py], [handles.Calibration_Axes]);
   
   % Return if ET_Cal is empty (problem with auto calibration)
   if isempty(calibration.C)
