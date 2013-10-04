@@ -4,32 +4,29 @@ function ET_PupilometryReport(handles)
 % ET_PupilometryReport(gaze_dir, cal_pupils, calibration, gaze_pupils, gaze_0)
 %
 % AUTHOR : Mike Tyszka, Ph.D.
-% PLACE  : Caltech 
+% PLACE  : Caltech
 % DATES  : 01/28/2013 JMT From scratch
 %
 % This file is part of ET.
-% 
+%
 %     ET is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
 %     the Free Software Foundation, either version 3 of the License, or
 %     (at your option) any later version.
-% 
+%
 %     ET is distributed in the hope that it will be useful,
 %     but WITHOUT ANY WARRANTY; without even the implied warranty of
 %     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %     GNU General Public License for more details.
-% 
+%
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
 % Copyright 2013 California Institute of Technology.
+dbstop if error
 
 % Extract relevant fields from handles structure
 gaze_dir    = handles.gaze_dir;
-cal_pupils  = handles.cal_pupils;
-calibration = handles.calibration;
-gaze_pupils = handles.gaze_pupils;
-gaze_filt   = handles.gaze_filt;
 
 % HTML report filename
 report_file = fullfile(gaze_dir,'Report.html');
@@ -38,8 +35,8 @@ fprintf('ET : Creating report - %s\n', report_file);
 
 fd = fopen(report_file,'w');
 if fd < 0
-  fprintf('Could not open %s to write\n', report_file);
-  return
+    fprintf('Could not open %s to write\n', report_file);
+    return
 end
 
 % Write HTML header
@@ -56,91 +53,215 @@ fprintf(fd, '<body>\n');
 fprintf(fd,'<h2>ET PUPILOMETRY REPORT</h2>\n');
 fprintf(fd,'<hr>\n');
 
+
 %% Calibration Report
 
-fprintf(fd,'<h2>CALIBRATION</h2>\n');
+if get(handles.Cal_Pupils_Checkbox,'Value')
+    fprintf(fd,'<h2>CALIBRATION</h2>\n');
+    cal_pupils  = handles.cal_pupils;
 
-% Calculate basic pupilometry stats
-cal_stats = ET_PupilometryStats(cal_pupils);
+    % Calculate basic pupilometry stats
+    cal_stats = ET_PupilometryStats(cal_pupils);
+    
+    fprintf(fd,'<table>\n');
+    fprintf(fd,'<tr><td>Video duration <td>%0.3f seconds\n', cal_stats.t_dur);
+    fprintf(fd,'<tr><td>Video rate <td>%0.3f fps\n', cal_stats.fps);
+    fprintf(fd,'</table>\n');
+    
+    % Extract timeseries
+    t      = [cal_pupils.t];
+    px_cal = [cal_pupils.px];
+    py_cal = [cal_pupils.py];
+    
+    % Generate calibration timeseries plots
+    ET_PlotTimeseries(t, px_cal, [], 'Calibration X', fullfile(gaze_dir, 'cal_px.png'));
+    ET_PlotTimeseries(t, py_cal, [], 'Calibration Y', fullfile(gaze_dir, 'cal_py.png'));
+    
+    % Add calibration timeseries to page
+    fprintf(fd,'<h3>Calibration Timeseries<h3>\n');
+    fprintf(fd,'<table><tr>\n');
+    fprintf(fd,'<td><img src=cal_px.png width=640>\n');
+    fprintf(fd,'<td><img src=cal_py.png width=640>\n');
+    fprintf(fd,'</tr></table>\n');
+    
+    % Generate calibration figure
+    cal_hmap_stub = fullfile(gaze_dir,'cal');
+    
+    obj=VideoReader([gaze_dir,'\Cal_Pupils.avi']);
+    eyeCAL=rgb2gray(read(obj,1));
 
-fprintf(fd,'<table>\n');
-fprintf(fd,'<tr><td>Video duration <td>%0.3f seconds\n', cal_stats.t_dur);
-fprintf(fd,'<tr><td>Video rate <td>%0.3f fps\n', cal_stats.fps);
-fprintf(fd,'</table>\n');
+    if get(handles.Cal_Model_Checkbox,'Value')
+        calibration = handles.calibration;
+   
+    ET_PlotCalibration(px_cal, py_cal, calibration, cal_hmap_stub, eyeCAL);
+    
+    % Add calibration heatmaps to page
+    fprintf(fd,'<h3>Calibration Heatmaps<h3>\n');
+    fprintf(fd,'<table><tr>\n');
+    fprintf(fd,'<td><img src=cal_hmap_raw.png width=640>\n');
+    fprintf(fd,'<td><img src=cal_hmap_cal.png width=640>\n');
+    fprintf(fd,'</tr></table>\n');
+    end
+end
+%% Validation Report
 
-% Extract timeseries
-t      = [cal_pupils.t];
-px_cal = [cal_pupils.px];
-py_cal = [cal_pupils.py];
 
-% Generate calibration timeseries plots
-ET_PlotTimeseries(t, px_cal, [], 'Calibration X', fullfile(gaze_dir, 'cal_px.png'));
-ET_PlotTimeseries(t, py_cal, [], 'Calibration Y', fullfile(gaze_dir, 'cal_py.png'));
+if get(handles.Val_Pupils_Checkbox,'Value')
+fprintf(fd,'<h2>VALIDATION</h2>\n');
+    val_pupils  = handles.val_pupils;
+    % Calculate basic pupilometry stats
+    val_stats = ET_PupilometryStats(val_pupils);
+    
+    fprintf(fd,'<table>\n');
+    fprintf(fd,'<tr><td>Video duration <td>%0.3f seconds\n', val_stats.t_dur);
+    fprintf(fd,'<tr><td>Video rate <td>%0.3f fps\n', val_stats.fps);
+    fprintf(fd,'</table>\n');
+    
+    % Extract timeseries
+    t      = [val_pupils.t];
+    px_val = [val_pupils.px];
+    py_val = [val_pupils.py];
+    
+    % Generate calibration timeseries plots
+    ET_PlotTimeseries(t, px_val, [], 'Valibration X', fullfile(gaze_dir, 'val_px.png'));
+    ET_PlotTimeseries(t, py_val, [], 'Valibration Y', fullfile(gaze_dir, 'val_py.png'));
+    
+    % Add calibration timeseries to page
+    fprintf(fd,'<h3>Validation Timeseries<h3>\n');
+    fprintf(fd,'<table><tr>\n');
+    fprintf(fd,'<td><img src=val_px.png width=640>\n');
+    fprintf(fd,'<td><img src=val_py.png width=640>\n');
+    fprintf(fd,'</tr></table>\n');
+    
+    % Generate calibration figure
+    val_hmap_stub = fullfile(gaze_dir,'val');
+    obj=VideoReader([gaze_dir,'\Val_Pupils.avi']);
+    eyeVAL=rgb2gray(read(obj,1));
+    
+    if get(handles.Val_Model_Checkbox,'Value')
+    validation = handles.validation;
+    ET_PlotCalibration(px_val, py_val, validation, val_hmap_stub, eyeVAL);
+    
+    % Add calibration heatmaps to page
+    fprintf(fd,'<h3>Validation Heatmaps<h3>\n');
+    fprintf(fd,'<table><tr>\n');
+    fprintf(fd,'<td><img src=val_hmap_raw.png width=640>\n');
+    fprintf(fd,'<td><img src=val_hmap_cal.png width=640>\n');
+    fprintf(fd,'</tr></table>\n');
+    
+    end
+end
 
-% Add calibration timeseries to page
-fprintf(fd,'<h3>Calibration Timeseries<h3>\n');
-fprintf(fd,'<table><tr>\n');
-fprintf(fd,'<td><img src=cal_px.png width=640>\n');
-fprintf(fd,'<td><img src=cal_py.png width=640>\n');
-fprintf(fd,'</tr></table>\n');
+%% Gaze Pupilometry Report (calibration model)
 
-% Generate calibration figure
-cal_hmap_stub = fullfile(gaze_dir,'cal_hmap');
-ET_PlotCalibration(px_cal, py_cal, calibration, cal_hmap_stub);
+if get(handles.Gaze_Pupils_Checkbox,'Value')   
+    fprintf(fd,'<hr>');
+    fprintf(fd,'<h2>GAZE</h2>\n');
+    gaze_pupils = handles.gaze_pupils;
 
-% Add calibration heatmaps to page
-fprintf(fd,'<h3>Calibration Heatmaps<h3>\n');
-fprintf(fd,'<table><tr>\n');
-fprintf(fd,'<td><img src=cal_hmap_raw.png width=640>\n');
-fprintf(fd,'<td><img src=cal_hmap_cal.png width=640>\n');
-fprintf(fd,'</tr></table>\n');
+    % Calculate basic pupilometry stats
+    gaze_stats = ET_PupilometryStats(gaze_pupils);
+    
+    fprintf(fd,'<table>\n');
+    fprintf(fd,'<tr><td>Video duration <td>%0.3f seconds\n', gaze_stats.t_dur);
+    fprintf(fd,'<tr><td>Video rate <td>%0.3f fps\n', gaze_stats.fps);
+    fprintf(fd,'</table>\n');
+    
+    if get(handles.Cal_Model_Checkbox,'Value')
+        fprintf(fd,'<h2><td>Calibration model</h2>\n');
 
-%% Gaze Pupilometry Report
+        % ALIGNMENT
+        obj=VideoReader([gaze_dir,'\Gaze_Pupils.avi']);
+        eyeGAZE=rgb2gray(read(obj,1));
+        stub = fullfile(gaze_dir,'gazecal');
+        ET_PlotCalibration(px_cal, py_cal, calibration, stub, eyeGAZE, 0);
+    
+        fprintf(fd,'<h3>Alignment check<h3>\n');
+        fprintf(fd,'<table><tr>\n');
+        fprintf(fd,'<td>Calibration video</td><td>Gaze video</td></tr><tr>\n');
+        fprintf(fd,'<td><img src=cal_fix.png width=640></td>\n');
+        fprintf(fd,'<td><img src=gazecal_fix.png width=640></td>\n');
+        fprintf(fd,'</tr></table>\n');
+   
+        % Extract timeseries
+        t      = [gaze_pupils.t];
+        gaze_x = [gaze_pupils.gaze_x];
+        gaze_y = [gaze_pupils.gaze_y];
+        a0     = [gaze_pupils.area_correct];
+    
+        % Filtered timeseries
+        filt_x  = [gaze_pupils.gaze_filt_x];
+        filt_y  = [gaze_pupils.gaze_filt_y];
+        filt_a0 = [gaze_pupils.gaze_filt_a0];
+    
+        % Generate gaze timeseries plots
+        ET_PlotTimeseries(t, gaze_x, [], 'Calibrated Gaze X', fullfile(gaze_dir, 'gaze_cal_x.png'));
+        ET_PlotTimeseries(t, gaze_y, [], 'Calibrated Gaze Y', fullfile(gaze_dir, 'gaze_cal_y.png'));
+        ET_PlotTimeseries(t, a0,     [], 'Corrected Pupil Area', fullfile(gaze_dir, 'a0.png'));
+        ET_PlotTimeseries(t, filt_x, [0 1], 'Filtered Gaze X', fullfile(gaze_dir, 'gaze_filt_cal_x.png'));
+        ET_PlotTimeseries(t, filt_y, [0 1], 'Filtered Gaze Y', fullfile(gaze_dir, 'gaze_filt_cal_y.png'));
+        ET_PlotTimeseries(t, filt_a0, [], 'Filtered Corrected Pupil Area', fullfile(gaze_dir, 'filt_a0.png'));
+    
+        % Add gaze timeseries to page
+        fprintf(fd,'<h3>Gaze Timeseries<h3>\n');
+        
+        fprintf(fd,'<table>\n');
+        fprintf(fd,'<tr>\n');
+        fprintf(fd,'<td><img src=gaze_cal_x.png width=640>\n');
+        fprintf(fd,'<td><img src=gaze_cal_y.png width=640>\n');
+        fprintf(fd,'<tr>\n');
+        fprintf(fd,'<td><img src=gaze_filt_cal_x.png width=640>\n');
+        fprintf(fd,'<td><img src=gaze_filt_cal_y.png width=640>\n');
+        fprintf(fd,'<tr>\n');
+        fprintf(fd,'<td><img src=a0.png width=640>\n');
+        fprintf(fd,'<td><img src=filt_a0.png width=640>\n');
+        fprintf(fd,'</table>\n');
+    
+    end
+    
 
-fprintf(fd,'<hr>');
-fprintf(fd,'<h2>GAZE</h2>\n');
 
-% Calculate basic pupilometry stats
-gaze_stats = ET_PupilometryStats(gaze_pupils);
+    if get(handles.Val_Model_Checkbox,'Value')
+        fprintf(fd,'<h2><td>Validation model</h2>\n');
+        
+        % ALIGNMENT
+        stub = fullfile(gaze_dir,'gazeval');
+        ET_PlotCalibration(px_val, py_val, validation, stub, eyeGAZE, 0);
+        
+        fprintf(fd,'<h3>Alignment check<h3>\n');
+        fprintf(fd,'<table><tr>\n');
+        fprintf(fd,'<td>Validation video</td><td>Gaze video</td></tr><tr>\n');
+        fprintf(fd,'<td><img src=val_fix.png width=640></td>\n');
+        fprintf(fd,'<td><img src=gazeval_fix.png width=640></td>\n');
+        fprintf(fd,'</tr></table>\n');
+        
+        % Extract timeseries
+        t      = [gaze_pupils.t];
+        gaze_x = [gaze_pupils.gazeVal_x];
+        gaze_y = [gaze_pupils.gazeVal_y];
+        % Filtered timeseries
+        filt_x  = [gaze_pupils.gazeVal_filt_x];
+        filt_y  = [gaze_pupils.gazeVal_filt_y];
+        % Generate gaze timeseries plots
+        ET_PlotTimeseries(t, gaze_x, [], 'Calibrated Gaze X', fullfile(gaze_dir, 'gaze_val_x.png'));
+        ET_PlotTimeseries(t, gaze_y, [], 'Calibrated Gaze Y', fullfile(gaze_dir, 'gaze_val_y.png'));
+        ET_PlotTimeseries(t, filt_x, [0 1], 'Filtered Gaze X', fullfile(gaze_dir, 'gaze_filt_val_x.png'));
+        ET_PlotTimeseries(t, filt_y, [0 1], 'Filtered Gaze Y', fullfile(gaze_dir, 'gaze_filt_val_y.png'));
+        
+        % Add gaze timeseries to page
+        fprintf(fd,'<h3>Gaze Timeseries<h3>\n');
+        
+        fprintf(fd,'<table>\n');
+        fprintf(fd,'<tr>\n');
+        fprintf(fd,'<td><img src=gaze_val_x.png width=640>\n');
+        fprintf(fd,'<td><img src=gaze_val_y.png width=640>\n');
+        fprintf(fd,'<tr>\n');
+        fprintf(fd,'<td><img src=gaze_filt_val_x.png width=640>\n');
+        fprintf(fd,'<td><img src=gaze_filt_val_y.png width=640>\n');
+        fprintf(fd,'</table>\n');
+    end
+end
 
-fprintf(fd,'<table>\n');
-fprintf(fd,'<tr><td>Video duration <td>%0.3f seconds\n', gaze_stats.t_dur);
-fprintf(fd,'<tr><td>Video rate <td>%0.3f fps\n', gaze_stats.fps);
-fprintf(fd,'</table>\n');
-
-% Extract timeseries
-t      = [gaze_pupils.t];
-gaze_x = [gaze_pupils.gaze_x];
-gaze_y = [gaze_pupils.gaze_y];
-a0     = [gaze_pupils.area_correct];
-
-% Filtered timeseries
-filt_x  = gaze_filt.x;
-filt_y  = gaze_filt.y;
-filt_a0 = gaze_filt.a0;
-
-% Generate gaze timeseries plots
-ET_PlotTimeseries(t, gaze_x, [], 'Calibrated Gaze X', fullfile(gaze_dir, 'gaze_x.png'));
-ET_PlotTimeseries(t, gaze_y, [], 'Calibrated Gaze Y', fullfile(gaze_dir, 'gaze_y.png'));
-ET_PlotTimeseries(t, a0,     [], 'Corrected Pupil Area', fullfile(gaze_dir, 'a0.png'));
-ET_PlotTimeseries(t, filt_x, [0 1], 'Filtered Gaze X', fullfile(gaze_dir, 'gaze_filt_x.png'));
-ET_PlotTimeseries(t, filt_y, [0 1], 'Filtered Gaze Y', fullfile(gaze_dir, 'gaze_filt_y.png'));
-ET_PlotTimeseries(t, filt_a0, [], 'Filtered Corrected Pupil Area', fullfile(gaze_dir, 'filt_a0.png'));
-
-% Add gaze timeseries to page
-fprintf(fd,'<h3>Gaze Timeseries<h3>\n');
-
-fprintf(fd,'<table>\n');
-fprintf(fd,'<tr>\n');
-fprintf(fd,'<td><img src=gaze_x.png width=640>\n');
-fprintf(fd,'<td><img src=gaze_y.png width=640>\n');
-fprintf(fd,'<tr>\n');
-fprintf(fd,'<td><img src=gaze_filt_x.png width=640>\n');
-fprintf(fd,'<td><img src=gaze_filt_y.png width=640>\n');
-fprintf(fd,'<tr>\n');
-fprintf(fd,'<td><img src=a0.png width=640>\n');
-fprintf(fd,'<td><img src=filt_a0.png width=640>\n');
-fprintf(fd,'</table>\n');
 
 %% Postamble
 

@@ -27,6 +27,7 @@ function handles = ET_CheckFiles(handles)
 % Full paths to videos
 dir_name = get(handles.CWD,'String');
 cal_video_path = fullfile(dir_name, get(handles.Cal_Video_File,'String'));
+val_video_path = fullfile(dir_name, get(handles.Val_Video_File,'String'));
 gaze_video_path = fullfile(dir_name, get(handles.Gaze_Video_File,'String'));
 
 % Check that calibration and gaze videos exist - color green if present, red if absent
@@ -34,6 +35,16 @@ if exist(cal_video_path,'file')
   set(handles.Cal_Video_File, 'ForegroundColor', [0 0.75 0]);
 else
   set(handles.Cal_Video_File, 'ForegroundColor','r');
+end
+
+if exist(val_video_path,'file')
+  set(handles.Val_Video_File, 'ForegroundColor', [0 0.75 0]);
+  set(handles.Val_Pupils_Checkbox,'Visible','on');
+  set(handles.Val_Model_Checkbox,'Visible','on');
+else
+  set(handles.Val_Video_File, 'ForegroundColor','r');
+  set(handles.Val_Pupils_Checkbox,'Visible','off');
+  set(handles.Val_Model_Checkbox,'Visible','off');
 end
 
 if exist(gaze_video_path,'file')
@@ -47,18 +58,26 @@ gaze_dir = fullfile(dir_name, 'Gaze');
 report_dir       = fullfile(gaze_dir,'Report');
 cal_pupils_file  = fullfile(gaze_dir,'Cal_Pupils.mat');
 calibration_file = fullfile(gaze_dir,'Calibration.mat');
+val_pupils_file  = fullfile(gaze_dir,'Val_Pupils.mat');
+validation_file = fullfile(gaze_dir,'Validation.mat');
 gaze_pupils_file = fullfile(gaze_dir,'Gaze_Pupils.mat');
 
 % Update check boxes in GUI
 set(handles.Cal_Pupils_Checkbox,  'Value', exist(cal_pupils_file,'file')  > 0);
 set(handles.Cal_Model_Checkbox,   'Value', exist(calibration_file,'file') > 0);
+set(handles.Val_Pupils_Checkbox, 'Value', exist(val_pupils_file,'file') > 0);
+set(handles.Val_Model_Checkbox,   'Value', exist(validation_file,'file') > 0);
 set(handles.Gaze_Pupils_Checkbox, 'Value', exist(gaze_pupils_file,'file') > 0);
 
 % Save filenames and paths in handles structure
 handles.gaze_dir = gaze_dir;
 handles.report_dir = report_dir;
 handles.cal_video_path = cal_video_path;
+handles.val_video_path = val_video_path;
 handles.gaze_video_path = gaze_video_path;
 handles.cal_pupils_file = cal_pupils_file;
 handles.calibration_file = calibration_file;
+handles.val_pupils_file = val_pupils_file;
+handles.validation_file = validation_file;
 handles.gaze_pupils_file = gaze_pupils_file;
+

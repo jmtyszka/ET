@@ -37,6 +37,7 @@ switch lower(mode)
   case 'init'
     
     % Plot graticule and set background to black
+    hold(h,'off');
     plot([0.1 0.5 0.9 0.1 0.5 0.9 0.1 0.5 0.9], [0.1 0.1 0.1 0.5 0.5 0.5 0.9 0.9 0.9], 'w+', 'parent', h);
     set(h,'color','k');
     set(h,'xlim',[0 1],'ylim',[0 1]);
