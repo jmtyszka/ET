@@ -34,21 +34,26 @@ end
 
 % Create input video object
 try
-  v_in = VideoPlayer(vname, 'Verbose', false, 'ShowTime', false);
+   if ~ismac
+         v_in = VideoReader(vname);
+    else
+        v_in = VideoPlayer(vname, 'Verbose', false, 'ShowTime', false);
+    end
 catch VIDEO_IN_OPEN
-  fprintf('ET : *** Problem opening input video file\n');
-  rethrow(VIDEO_IN_OPEN);
+    fprintf('ET : *** Problem opening input video file\n');
+    rethrow(VIDEO_IN_OPEN);
 end
 
+currentFrame=1;
 % Load interlaced video frame
-fr_pair = ET_LoadFramePair(v_in,'interlaced');
-
-% Close video file
-clear v_in
-
+fr_pair = ET_LoadFramePair(v_in,'interlaced',currentFrame);
 % Save odd frame as video poster frame
 fr = fr_pair(:,:,1);
 handles.video_poster_frame = fr;
 
+% Close video file
+clear v_in
+
 % Update ROI image in GUI
 handles = ET_UpdateROIImage(handles);
+
