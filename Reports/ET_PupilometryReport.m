@@ -87,9 +87,14 @@ if get(handles.Cal_Pupils_Checkbox,'Value')
     % Generate calibration figure
     cal_hmap_stub = fullfile(gaze_dir,'cal');
     
-    obj=VideoReader([gaze_dir,'\Cal_Pupils.avi']);
-    eyeCAL=rgb2gray(read(obj,1));
-
+    if ismac
+        obj = VideoPlayer([gaze_dir,'\Cal_Pupils.avi'], 'Verbose', false, 'ShowTime', false);
+        eyeCAL = obj.Frame;
+    else
+        obj=VideoReader([gaze_dir,'\Cal_Pupils.avi']);
+        eyeCAL = rgb2gray(read(obj,1));
+    end
+    
     if get(handles.Cal_Model_Checkbox,'Value')
         calibration = handles.calibration;
    
@@ -135,8 +140,14 @@ fprintf(fd,'<h2>VALIDATION</h2>\n');
     
     % Generate calibration figure
     val_hmap_stub = fullfile(gaze_dir,'val');
-    obj=VideoReader([gaze_dir,'\Val_Pupils.avi']);
-    eyeVAL=rgb2gray(read(obj,1));
+    
+    if ismac
+        obj = VideoPlayer([gaze_dir,'\Val_Pupils.avi'], 'Verbose', false, 'ShowTime', false);
+        eyeVAL = obj.Frame;
+    else
+        obj=VideoReader([gaze_dir,'\Val_Pupils.avi']);
+        eyeVAL=rgb2gray(read(obj,1));
+    end
     
     if get(handles.Val_Model_Checkbox,'Value')
     validation = handles.validation;
@@ -171,8 +182,14 @@ if get(handles.Gaze_Pupils_Checkbox,'Value')
         fprintf(fd,'<h2><td>Calibration model</h2>\n');
 
         % ALIGNMENT
-        obj=VideoReader([gaze_dir,'\Gaze_Pupils.avi']);
-        eyeGAZE=rgb2gray(read(obj,1));
+        if ismac
+            obj = VideoPlayer([gaze_dir,'\Gaze_Pupils.avi'], 'Verbose', false, 'ShowTime', false);
+            eyeGAZE = obj.Frame;
+        else
+            obj=VideoReader([gaze_dir,'\Gaze_Pupils.avi']);
+            eyeGAZE=rgb2gray(read(obj,1));
+        end
+        
         stub = fullfile(gaze_dir,'gazecal');
         ET_PlotCalibration(px_cal, py_cal, calibration, stub, eyeGAZE, 0);
     
