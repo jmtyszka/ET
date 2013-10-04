@@ -88,10 +88,10 @@ if get(handles.Cal_Pupils_Checkbox,'Value')
     cal_hmap_stub = fullfile(gaze_dir,'cal');
     
     if ismac
-        obj = VideoPlayer([gaze_dir,'\Cal_Pupils.avi'], 'Verbose', false, 'ShowTime', false);
+        obj = VideoPlayer(fullfile(gaze_dir,'Cal_Pupils.mov'), 'Verbose', false, 'ShowTime', false);
         eyeCAL = obj.Frame;
     else
-        obj=VideoReader([gaze_dir,'\Cal_Pupils.avi']);
+        obj=VideoReader(fullfile(gaze_dir,'Cal_Pupils.avi'));
         eyeCAL = rgb2gray(read(obj,1));
     end
     
@@ -142,10 +142,10 @@ fprintf(fd,'<h2>VALIDATION</h2>\n');
     val_hmap_stub = fullfile(gaze_dir,'val');
     
     if ismac
-        obj = VideoPlayer([gaze_dir,'\Val_Pupils.avi'], 'Verbose', false, 'ShowTime', false);
+        obj = VideoPlayer(fullfile(gaze_dir,'Val_Pupils.mov'), 'Verbose', false, 'ShowTime', false);
         eyeVAL = obj.Frame;
     else
-        obj=VideoReader([gaze_dir,'\Val_Pupils.avi']);
+        obj=VideoReader(fullfile(gaze_dir,'Val_Pupils.avi'));
         eyeVAL=rgb2gray(read(obj,1));
     end
     
@@ -182,11 +182,12 @@ if get(handles.Gaze_Pupils_Checkbox,'Value')
         fprintf(fd,'<h2><td>Calibration model</h2>\n');
 
         % ALIGNMENT
+        
         if ismac
-            obj = VideoPlayer([gaze_dir,'\Gaze_Pupils.avi'], 'Verbose', false, 'ShowTime', false);
+            obj = VideoPlayer(fullfile(gaze_dir,'Gaze_Pupils.mov'), 'Verbose', false, 'ShowTime', false);
             eyeGAZE = obj.Frame;
         else
-            obj=VideoReader([gaze_dir,'\Gaze_Pupils.avi']);
+            obj=VideoReader(fullfile(gaze_dir,'Gaze_Pupils.avi'));
             eyeGAZE=rgb2gray(read(obj,1));
         end
         
