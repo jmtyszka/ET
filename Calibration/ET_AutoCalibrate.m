@@ -1,4 +1,4 @@
-function calibration = ET_AutoCalibrate(px, py, handle)
+function calibration = ET_AutoCalibrate(pupils, handles)
 % Calculate video to gaze calibration model
 %
 % calibration = ET_AutoCalibrate(px, py)
@@ -38,20 +38,50 @@ function calibration = ET_AutoCalibrate(px, py, handle)
 calibration.C = [];
 calibration.fixations = [];
 
+% Reinitialize Gaze Axes
+ET_PlotGaze([], handles.Gaze_Axes, 'init');
+
 %% Calibration in video frame of reference
 
 % Raw fixations in video frame of reference
-fixations = ET_FindFixations_Heat(px, py);
+if 0
+    fixations = ET_FindFixations_Heat(pupils,handles);
+else
+    % JD 10/03/13 : combining fixations detected in spatial and time domains
+    % in case the heatmap doesn't suffice; since the points are picked
+    % manually, it is not a problem to have too many
+    fixationsH = ET_FindFixations_Heat(pupils,handles);
+    fixationsT = ET_FindFixations_Time(pupils,handles);
+    fixations.x = [fixationsH.x fixationsT.x];
+    fixations.y = [fixationsH.y fixationsT.y];
+    fixations.hmap = fixationsH.hmap;
+    fixations.xv = fixationsH.xv;
+    fixations.yv = fixationsH.yv;
+end
 
-% Manual fixation picking
-fixations = ET_PickFixations(fixations, handle);
-
-% Sort fixations
-[fx, fy] = ET_SortFixations(fixations);
+if 0
+    % Manual fixation picking (not in order)
+    % just pick 9 fixations, they are sorted automatically
+    % if there are less than 9 fixations, the automatic sorting is
+    % problematic
+    fixations = ET_PickFixations(fixations, handles);
+    % Sort fixations
+    [fx, fy] = ET_SortFixations(fixations);
+else
+    % Manual fixation picking in order
+    % left click on the fixation that corresponds to the currently
+    % highlighted point in the gaze window; then press return
+    % if there is no detected fixation at that point, just press return and
+    % the point will be ignored (ok if we have 1 or 2 missing fixations)
+    fixations = ET_PickFixationsOrder(fixations, handles);
+    fx = fixations.x;
+    fy = fixations.y;
+    % this assumes that we have a 9-point calibration
+end
 
 % Biquadratic fit to calibration fixations
 C = ET_CalibrationFit(fx, fy);
-
+    
 % Save results in structure
 calibration.C         = C;
 calibration.fixations = fixations;

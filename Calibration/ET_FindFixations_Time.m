@@ -1,4 +1,4 @@
-function ET_Fix = ET_FindFixations_Time(pupils, targets)
+function fixations = ET_FindFixations_Time(pupils, handles)
 % Identify fixations in time domain (dormant thread)
 %
 % USAGE : ET_Fix = ET_FindFixations_Time(pupils, targets)
@@ -27,15 +27,15 @@ function ET_Fix = ET_FindFixations_Time(pupils, targets)
 %
 % Copyright 2013 California Institute of Technology.
 
-if nargin < 2
-  % Classic 9-point clockwise from top left
+% if nargin < 2
+%   % Classic 9-point clockwise from top left
   targets = [...
     0.1 0.5 0.9 0.1 0.5 0.9 0.1 0.5 0.9; ...
     0.9 0.9 0.9 0.5 0.5 0.5 0.1 0.1 0.1];
-end
+% end
 
 % Flags
-verbose = true;
+verbose = false;
 
 % Init return structure
 ET_Fix = [];
@@ -45,9 +45,10 @@ n_fix = size(targets,2);
 
 % Extract pupil timeseries
 t     = [pupils.t];
-px    = [pupils.px];
-py    = [pupils.py];
 blink = [pupils.blink];
+
+px = [pupils.px];
+py = [pupils.py];
 
 % Frame duration
 dt = t(2)-t(1);
@@ -123,11 +124,14 @@ for fc = 1:n_good_fix
   pyf = py(f0:f1);
   
   % Mean and sd of fixation center
-  fx_mean(fc) = mean(pxf);
-  fy_mean(fc) = mean(pyf);
-  fx_sd(fc)   = std(pxf);
-  fy_sd(fc)   = std(pyf);
+%   fx_mean(fc) = mean(pxf);
+%   fy_mean(fc) = mean(pyf);
+%   fx_sd(fc)   = std(pxf);
+%   fy_sd(fc)   = std(pyf);
   
+    fixations.x(fc) = mean(pxf);
+  fixations.y(fc) = mean(pyf);
+
 end
 
 if verbose

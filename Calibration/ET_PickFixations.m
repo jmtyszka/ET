@@ -1,4 +1,4 @@
-function fixations = ET_PickFixations(fixations,handle)
+function fixations = ET_PickFixations(fixations,handles)
 % If the number of fixations is neither 4 nor 9, do a manual check; 
 % click (left click) on the 4 or 9 "true" fixations
 % if you made a mistae and want to start over, press 'esc'
@@ -30,27 +30,22 @@ function fixations = ET_PickFixations(fixations,handle)
 
 dbstop if error
 
-% Number of fixations
-n_fix = length(fixations.x);
-
-% no need for a manual edit if the number of fixations is 4 or 9
-if n_fix == 4 || n_fix==9
-    return
-end
+% % no need for a manual edit if the number of fixations is 4 or 9
+% if n_fix == 4 || n_fix==9
+%     return
+% end
 
 % Smoothed heatmap in GUI calibration axes
-imagesc(fixations.xv, fixations.yv, fixations.hmap, 'parent',handle)
+axes(handles.Calibration_Axes);cla;
+imagesc(fixations.xv, fixations.yv, fixations.hmap);%, 'parent',handle)
 axis equal ij tight
-% Overlay calibration points
+
+
+% Overlay possible fixations (peaks of heatmap)
 hold on
-for ifix = 1:n_fix
+for ifix = 1:length(fixations.x)
   plot(fixations.x(ifix), fixations.y(ifix), 'o', 'MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',8);
 end
-v=axis;
-text(v(1)+(v(2)-v(1))/10,v(3)+8.5*(v(4)-v(3))/10,'left click on fixations (4, or 9) to toggle them','Color','w')
-text(v(1)+(v(2)-v(1))/10,v(3)+9*(v(4)-v(3))/10,'GREEN : keep fixation','Color','w')
-text(v(1)+(v(2)-v(1))/10,v(3)+9.5*(v(4)-v(3))/10,'press ''return'' when you are done','Color','w')
-
 
 % use ginput to select good fixations
 % (left) click on good fixations
@@ -79,16 +74,4 @@ end
 
 fixations.x=fixations.x(indkeep);
 fixations.y=fixations.y(indkeep);
-
-% % Number of fixations
-% n_fix = length(fixations.x);
-% cla;
-% % Smoothed heatmap in GUI calibration axes
-% imagesc(fixations.xv, fixations.yv, fixations.hmap, 'parent',handle)
-% axis equal ij tight
-% % Overlay calibration points
-% hold on
-% for ifix = 1:n_fix
-%   plot(fixations.x(ifix), fixations.y(ifix), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',8);
-% end
 

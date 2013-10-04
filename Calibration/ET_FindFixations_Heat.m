@@ -1,4 +1,4 @@
-function fixations = ET_FindFixations_Heat(px, py)
+function fixations = ET_FindFixations_Heat(pupils,handles)
 % Identify fixations in spatial domain using heatmap
 %
 % USAGE : ET_Fix = ET_FindFixations_Heat(px, py)
@@ -36,9 +36,13 @@ function fixations = ET_FindFixations_Heat(px, py)
 %
 % Copyright 2011-2013 California Institute of Technology.
 
+
 % Gaussian smoothing sigma for initial fixation map
 % TODO : Make this adaptive if necessary
 sigma = 3.0;
+
+px = [pupils.px];
+py = [pupils.py];
 
 % Create heatmap over all frames
 [hmap, xv, yv] = ET_HeatMap(px, py, sigma, false);

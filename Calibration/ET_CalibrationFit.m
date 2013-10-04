@@ -25,8 +25,11 @@ function C = ET_CalibrationFit(fx, fy)
 %
 % Copyright 2012-2013 California Institute of Technology.
 
+
 % Number of fixations
 n_fix = length(fx);
+
+notnan=~isnan(fx);
 
 switch n_fix
   
@@ -86,7 +89,7 @@ switch n_fix
     R = [ fx2; fxy; fy2; fx; fy; ones(1,n_fix) ];
     
     % Moore-Penrose pseudoinverse of R
-    Rinv = pinv(R);
+    Rinv = pinv(R (:,notnan));
     
     % Fractional gaze coordinates (book-style ordering)
     % Use percent full screen for calibrated coordinates
@@ -99,6 +102,9 @@ switch n_fix
     
     x0 = [0.9 0.5 0.1 0.9 0.5 0.1 0.9 0.5 0.1];
     y0 = [0.9 0.9 0.9 0.5 0.5 0.5 0.1 0.1 0.1];
+    
+    x0= x0(notnan);
+    y0= y0(notnan);
     
   otherwise
     

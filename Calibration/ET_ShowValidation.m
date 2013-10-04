@@ -1,4 +1,4 @@
-function ET_ShowCalibration(handles)
+function ET_ShowValidation(handles)
 % Show calibration in GUI
 %
 % ET_ShowCalibration(calibration, handles)
@@ -34,12 +34,12 @@ function ET_ShowCalibration(handles)
 %% Show calibration heat map and fixation overlay in GUI
 
 % Extract fixations from calibration structure
-fx        = handles.calibration.fx;
-fy        = handles.calibration.fy;
-fixations = handles.calibration.fixations;
+fx        = handles.validation.fx;
+fy        = handles.validation.fy;
+fixations = handles.validation.fixations;
 
 % Smoothed heatmap in GUI calibration axes
-axes(handles.Calibration_Axes);cla;
+axes(handles.Calibration_Axes);cla
 %X=(handles.cal_pupils(1).rx1-handles.cal_pupils(1).rx0+1);
 %Y=(handles.cal_pupils(1).ry1-handles.cal_pupils(1).ry0+1);
 %xlim([floor(X/4) ceil(3*X/4)]);
@@ -47,7 +47,7 @@ axes(handles.Calibration_Axes);cla;
 imagesc(fixations.xv, fixations.yv, fixations.hmap);%, 'parent', handles.Calibration_Axes)
 axis equal ij;axis manual;hold on
 
-% Overlay calibration points
+% Overlay validation points
 for fc = 1:length(fx)
   plot(fx(fc), fy(fc), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',8);
 end
