@@ -42,11 +42,20 @@ else
   roi_hw = [];
 end
 
-% Find pupil in frame
-[p_init, handles.roi] = ET_FindPupilInFrame(fr, handles.pd_range, roi_hw);
+%Find pupil in frame
+[p_init, roi] = ET_FindPupilInFrame(fr, handles.pd_range, roi_hw);
+
+% JD 10/3/13 : do not change the ROI if one is available already from
+% calibration. This may cause a problem if there has been a lot of motion between CAL and GAZE videos 
+% BUG: this means the p_init may be off but I believe this is ok
+if ~isfield(handles,'roi')
+    handles.roi=roi;
+    fprintf('ET : New ROI : %d %d %d %d\n',handles.roi.x0,handles.roi.x1,handles.roi.y0,handles.roi.y1)
+end
 
 % Rotations in degrees in same order as popup menu selections
 rots = [0 90 -90 180];
+
 
 % Set rotation from GUI
 handles.roi.rotation = rots(get(handles.ROI_Rotation_Popup, 'Value'));
