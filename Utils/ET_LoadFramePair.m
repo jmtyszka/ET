@@ -57,7 +57,7 @@ switch lower(imode)
         % Load two frames
         if ~ismac
             fr_odd = (read(v_in, currentFrame));
-            fr_even = (read(obj, currentFrame+1));
+            fr_even = (read(v_in, currentFrame+1));
             keep_going = currentFrame+2;
         else
             fr_odd = v_in.Frame;

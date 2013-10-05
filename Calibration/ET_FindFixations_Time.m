@@ -1,4 +1,4 @@
-function fixations = ET_FindFixations_Time(pupils, handles)
+function fixations = ET_FindFixations_Time(pupils)
 % Identify fixations in time domain (dormant thread)
 %
 % USAGE : ET_Fix = ET_FindFixations_Time(pupils, targets)

@@ -1,4 +1,4 @@
-function fixations = ET_FindFixations_Heat(pupils,handles)
+function fixations = ET_FindFixations_Heat(pupils)
 % Identify fixations in spatial domain using heatmap
 %
 % USAGE : ET_Fix = ET_FindFixations_Heat(px, py)

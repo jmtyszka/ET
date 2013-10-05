@@ -88,12 +88,12 @@ if get(handles.Cal_Pupils_Checkbox,'Value')
     cal_hmap_stub = fullfile(gaze_dir,'cal');
     
     if ismac
-        obj = VideoPlayer(fullfile(gaze_dir,'Cal_Pupils.mov'), 'Verbose', false, 'ShowTime', false);
-        eyeCAL = obj.Frame;
-    else
-        obj=VideoReader(fullfile(gaze_dir,'Cal_Pupils.avi'));
-        eyeCAL = rgb2gray(read(obj,1));
+        v_in = VideoPlayer(fullfile(gaze_dir,'Cal_Pupils.avi'), 'Verbose', false, 'ShowTime', false);
+     else
+        v_in = VideoReader(fullfile(gaze_dir,'Cal_Pupils.avi'));
     end
+    fr_pair = ET_LoadFramePair(v_in, 'progressive', 1);
+    eyeCAL=fr_pair(:,:,1);
     
     if get(handles.Cal_Model_Checkbox,'Value')
         calibration = handles.calibration;
@@ -142,13 +142,13 @@ fprintf(fd,'<h2>VALIDATION</h2>\n');
     val_hmap_stub = fullfile(gaze_dir,'val');
     
     if ismac
-        obj = VideoPlayer(fullfile(gaze_dir,'Val_Pupils.mov'), 'Verbose', false, 'ShowTime', false);
-        eyeVAL = obj.Frame;
+        v_in = VideoPlayer(fullfile(gaze_dir,'Val_Pupils.avi'), 'Verbose', false, 'ShowTime', false);
     else
-        obj=VideoReader(fullfile(gaze_dir,'Val_Pupils.avi'));
-        eyeVAL=rgb2gray(read(obj,1));
+        v_in=VideoReader(fullfile(gaze_dir,'Val_Pupils.avi'));
     end
-    
+    fr_pair = ET_LoadFramePair(v_in, 'progressive', 1);
+    eyeVAL=fr_pair(:,:,1);
+  
     if get(handles.Val_Model_Checkbox,'Value')
     validation = handles.validation;
     ET_PlotCalibration(px_val, py_val, validation, val_hmap_stub, eyeVAL);
@@ -181,16 +181,15 @@ if get(handles.Gaze_Pupils_Checkbox,'Value')
     if get(handles.Cal_Model_Checkbox,'Value')
         fprintf(fd,'<h2><td>Calibration model</h2>\n');
 
-        % ALIGNMENT
-        
+        % ALIGNMENT        
         if ismac
-            obj = VideoPlayer(fullfile(gaze_dir,'Gaze_Pupils.mov'), 'Verbose', false, 'ShowTime', false);
-            eyeGAZE = obj.Frame;
+            v_in = VideoPlayer(fullfile(gaze_dir,'Gaze_Pupils.avi'), 'Verbose', false, 'ShowTime', false);
         else
-            obj=VideoReader(fullfile(gaze_dir,'Gaze_Pupils.avi'));
-            eyeGAZE=rgb2gray(read(obj,1));
+            v_in=VideoReader(fullfile(gaze_dir,'Gaze_Pupils.avi'));
         end
-        
+        fr_pair = ET_LoadFramePair(v_in, 'progressive', 1);
+        eyeGAZE=fr_pair(:,:,1);
+  
         stub = fullfile(gaze_dir,'gazecal');
         ET_PlotCalibration(px_cal, py_cal, calibration, stub, eyeGAZE, 0);
     

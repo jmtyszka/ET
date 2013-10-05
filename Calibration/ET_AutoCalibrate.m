@@ -45,13 +45,13 @@ ET_PlotGaze([], handles.Gaze_Axes, 'init');
 
 % Raw fixations in video frame of reference
 if 0
-    fixations = ET_FindFixations_Heat(pupils,handles);
+    fixations = ET_FindFixations_Heat(pupils);
 else
     % JD 10/03/13 : combining fixations detected in spatial and time domains
     % in case the heatmap doesn't suffice; since the points are picked
     % manually, it is not a problem to have too many
-    fixationsH = ET_FindFixations_Heat(pupils,handles);
-    fixationsT = ET_FindFixations_Time(pupils,handles);
+    fixationsH = ET_FindFixations_Heat(pupils);
+    fixationsT = ET_FindFixations_Time(pupils);
     fixations.x = [fixationsH.x fixationsT.x];
     fixations.y = [fixationsH.y fixationsT.y];
     fixations.hmap = fixationsH.hmap;
