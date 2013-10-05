@@ -139,12 +139,18 @@ tic;
 % Loop over interlaced frame pairs of movie
 currentFrame=1;
 for pc = 1:n_frames
-    
+   
+    if pc>1
+        % save the frame pair for MR correction
+        prev_fr_pair=fr_pair;
+    end
     [fr_pair, currentFrame] = ET_LoadFramePair(v_in, video_mode, currentFrame);
     
     % Clean MR artifacts
-    if do_mrclean
-        fr_pair = ET_MRClean(fr_pair,get(handles.Debug_Toggle,'Value'));
+    if do_mrclean && pc>1
+        fr0_pair = ET_MRCleanJD(fr_pair,prev_fr_pair,get(handles.Debug_Toggle,'Value'));
+    else
+        fr0_pair = fr_pair;
     end
     
     % Loop over each interleaved frame
@@ -154,7 +160,7 @@ for pc = 1:n_frames
         fc = fc + 1;
         
         % Current frame
-        fr = fr_pair(:,:,ic);
+       fr = fr0_pair(:,:,ic);
         
         % Refine pupil parameter estimates
         p_new = ET_RefinePupil(fr, roi, p_run, options);

@@ -109,29 +109,26 @@ for bc = 1:n_arts
   art_frame_mask = repmat(row_mask,[1 n_cols]);
 
   % Check amplitude of artifact against frame maximum
-  % TODO: this threshold is not working properly at differentiating the
-  % two types of artifact; given that the bright one is the most
-  % problematic right now, type 1 correction is always applied
   
-  %   if abs(max_art) > 0.25
-  
-  % Type 1 : High magnitude, positive, narrow
-  if max_art > 0
-      fr0_even(art_frame_mask) = fr0_odd(art_frame_mask);
+  if abs(max_art) > 0.25
+      
+      % Type 1 : High magnitude, positive, narrow
+      if max_art > 0
+          fr0_even(art_frame_mask) = fr0_odd(art_frame_mask);
+      else
+          fr0_odd(art_frame_mask) = fr0_even(art_frame_mask);
+      end
+      
   else
-      fr0_odd(art_frame_mask) = fr0_even(art_frame_mask);
+      
+      % Type 2 : Low magnitidue, negative, wide
+      if max_art < 0
+          fr0_even(art_frame_mask) = fr0_odd(art_frame_mask);
+      else
+          fr0_odd(art_frame_mask) = fr0_even(art_frame_mask);
+      end
+      
   end
-  
-  %   else
-  
-  %     % Type 2 : Low magnitidue, negative, wide
-  %     if max_art < 0
-  %       fr0_even(art_frame_mask) = fr0_odd(art_frame_mask);
-  %     else
-  %       fr0_odd(art_frame_mask) = fr0_even(art_frame_mask);
-  %     end
-  
-  %   end
   
 end
 
