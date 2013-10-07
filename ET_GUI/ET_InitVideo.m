@@ -43,10 +43,11 @@ catch VIDEO_IN_OPEN
     fprintf('ET : *** Problem opening input video file\n');
     rethrow(VIDEO_IN_OPEN);
 end
+videomodes=get(handles.videomode_popup,'string');
+videomode=videomodes{get(handles.videomode_popup,'Value')};
 
-currentFrame=1;
-% Load interlaced video frame
-fr_pair = ET_LoadFramePair(v_in,'interlaced',currentFrame);
+% Load video frame
+fr_pair = ET_LoadFramePair(v_in,videomode,1);
 % Save odd frame as video poster frame
 fr = fr_pair(:,:,1);
 handles.video_poster_frame = fr;

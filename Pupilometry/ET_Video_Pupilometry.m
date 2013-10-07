@@ -90,15 +90,18 @@ end
 % progressive conversion
 if ~ismac
     n_frames = v_in.NumberOfFrames;
-    fps_p = v_in.FrameRate;
 else
     n_frames  = v_in.NumFrames;
-    fps_p      = 29.98;          % Progressive frame rate
 end
 
-% Hardcode for now - VideoPlayer doesn't read FPS info from video
-video_mode = 'interlaced';   % Assume interlaced source for now
-fps_i      = 2 * fps_p;      % Interlaced frame rate
+
+videomodes=get(handles.videomode_popup,'String');
+video_mode=videomodes{get(handles.videomode_popup,'Value')};
+
+fps_p=str2double(get(handles.fps,'String'));
+if strcmp(video_mode,'interlaced')
+    fps_i = 2 * fps_p;
+end
 
 % Setup refine pupil options from GUI
 options = ET_GetRefinePupilOptions(handles);
@@ -137,14 +140,21 @@ fprintf('Video pupilometry started at %s\n', datestr(now));
 tic;
 
 % Loop over interlaced frame pairs of movie
-currentFrame=1;
-for pc = 1:n_frames
-   
-    if pc>1
+keep_going=true;
+pc=1;
+while keep_going
+% for pc = 1:n_frames
+     if pc>1
         % save the frame pair for MR correction
         prev_fr_pair=fr_pair;
     end
-    [fr_pair, currentFrame] = ET_LoadFramePair(v_in, video_mode, currentFrame);
+    
+    [fr_pair,keep_going] = ET_LoadFramePair(v_in, video_mode, pc);
+    
+    if isempty(fr_pair)
+        % may happen in the progressive case
+        break
+    end
     
     % Clean MR artifacts
     if do_mrclean && pc>1
@@ -160,7 +170,7 @@ for pc = 1:n_frames
         fc = fc + 1;
         
         % Current frame
-       fr = fr0_pair(:,:,ic);
+        fr = fr0_pair(:,:,ic);
         
         % Refine pupil parameter estimates
         p_new = ET_RefinePupil(fr, roi, p_run, options);
@@ -234,6 +244,12 @@ for pc = 1:n_frames
         
     end
     
+    switch video_mode
+        case 'interlaced'
+            pc = pc + 1;
+        case 'progressive'
+            pc = pc + 2;
+    end
 end % Movie loop
 
 % Stop timer

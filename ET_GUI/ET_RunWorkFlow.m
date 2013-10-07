@@ -43,7 +43,7 @@ else
     do_cal_pupils = true;
 end
 
-% Peform calibration analysis as needed
+% Perform calibration analysis as needed
 if do_cal_pupils
     
     % Run calibration pupilometry
@@ -84,52 +84,55 @@ else
     
 end
 
-%% Calibration model
 
-% Check to see if the calibration model has been created and filled
-do_calibration = false;
-if isfield(handles,'calibration')
-    if isempty(handles.calibration)
+if get(handles.do_pupilometry_only,'Value')==1,
+    handles.calibration.C = [];
+else
+    %% Calibration model
+    % Check to see if the calibration model has been created and filled
+    do_calibration = false;
+    if isfield(handles,'calibration')
+        if isempty(handles.calibration)
+            do_calibration = true;
+        end
+    else
         do_calibration = true;
     end
-else
-    do_calibration = true;
-end
-
-% Perform calibration model fitting as required
-if do_calibration
     
-    % Calculate calibration model and add to handles
-    fprintf('ET : Creating calibration model\n');
-    
-    set(handles.Calibration_Axis_Title,'String','Calibration');
-    % Run autocalibration
-    %     calibration = ET_AutoCalibrate([handles.cal_pupils.px], [handles.cal_pupils.py], [handles.Calibration_Axes]);
-    calibration = ET_AutoCalibrate(handles.cal_pupils,handles);
-    
-    % Return if ET_Cal is empty (problem with auto calibration)
-    if isempty(calibration.C)
-        fprintf('ET : *** Problem creating calibration model\n');
-        return
+    % Perform calibration model fitting as required
+    if do_calibration
+        
+        % Calculate calibration model and add to handles
+        fprintf('ET : Creating calibration model\n');
+        
+        set(handles.Calibration_Axis_Title,'String','Calibration');
+        % Run autocalibration
+        %     calibration = ET_AutoCalibrate([handles.cal_pupils.px], [handles.cal_pupils.py], [handles.Calibration_Axes]);
+        calibration = ET_AutoCalibrate(handles.cal_pupils,handles);
+        
+        % Return if ET_Cal is empty (problem with auto calibration)
+        if isempty(calibration.C)
+            fprintf('ET : *** Problem creating calibration model\n');
+            return
+        end
+        
+        % Save calibration model
+        save(handles.calibration_file, 'calibration');
+        handles.calibration = calibration;
+        
+        % Update GUI checks
+        handles = ET_CheckFiles(handles);
+        
+        % Display the current calibration model in the GUI
+        set(handles.Calibration_Axis_Title,'String','Calibration');
+        ET_ShowCalibration(handles);
+        
+    else
+        
+        fprintf('ET : Calibration model already loaded\n');
+        
     end
-    
-    % Save calibration model
-    save(handles.calibration_file, 'calibration');
-    handles.calibration = calibration;
-    
-    % Update GUI checks
-    handles = ET_CheckFiles(handles);
-    
-    % Display the current calibration model in the GUI
-    set(handles.Calibration_Axis_Title,'String','Calibration');
-    ET_ShowCalibration(handles);
-    
-else
-    
-    fprintf('ET : Calibration model already loaded\n');
-    
 end
-
 
 
 
@@ -160,7 +163,7 @@ if sum(get(handles.Val_Video_File,'ForegroundColor')==[0 0.75 0])==3
         video_outfile = fullfile(handles.gaze_dir,'Val_Pupils');
         
         % Only check MR clean flag for gaze movie analysis
-        do_mrclean    = 'false';
+        do_mrclean    = false;
         
         % Run pupilometry on calibration video
         val_pupils = ET_Video_Pupilometry(...
@@ -184,50 +187,54 @@ if sum(get(handles.Val_Video_File,'ForegroundColor')==[0 0.75 0])==3
         fprintf('ET : Validation pupilometry already loaded\n');
     end
     
-    %% Validation model
-    
-    % Check to see if the validation model has been created and filled
-    do_validation = false;
-    if isfield(handles,'validation')
-        if isempty(handles.validation)
+    if get(handles.do_pupilometry_only,'Value')==1,
+        handles.validation.C=[];
+    else
+        
+        %% Validation model
+        
+        % Check to see if the validation model has been created and filled
+        do_validation = false;
+        if isfield(handles,'validation')
+            if isempty(handles.validation)
+                do_validation = true;
+            end
+        else
             do_validation = true;
         end
-    else
-        do_validation = true;
-    end
-    
-    % Perform validation model fitting as required
-    if do_validation
         
-        % Calculate calibration model and add to handles
-        fprintf('ET : Creating validation model\n');
-        set(handles.Calibration_Axis_Title,'String','Validation');
-        
-        % Run autocalibration
-        %         validation = ET_AutoCalibrate([handles.val_pupils.px], [handles.val_pupils.py], handles);
-        validation = ET_AutoCalibrate(handles.val_pupils, handles);
-        
-        % Return if ET_Cal is empty (problem with auto calibration)
-        if isempty(validation.C)
-            fprintf('ET : *** Problem creating validation model\n');
-            return
+        % Perform validation model fitting as required
+        if do_validation
+            
+            % Calculate calibration model and add to handles
+            fprintf('ET : Creating validation model\n');
+            set(handles.Calibration_Axis_Title,'String','Validation');
+            
+            % Run autocalibration
+            %         validation = ET_AutoCalibrate([handles.val_pupils.px], [handles.val_pupils.py], handles);
+            validation = ET_AutoCalibrate(handles.val_pupils, handles);
+            
+            % Return if ET_Cal is empty (problem with auto calibration)
+            if isempty(validation.C)
+                fprintf('ET : *** Problem creating validation model\n');
+                return
+            end
+            
+            % Save validation model
+            save(handles.validation_file, 'validation');
+            handles.validation = validation;
+            
+            % Update GUI checks
+            handles = ET_CheckFiles(handles);
+            
+            set(handles.Calibration_Axis_Title,'String','Validation');
+            ET_ShowValidation(handles);
+        else
+            
+            fprintf('ET : Validation model already loaded\n');
+            
         end
-        
-        % Save validation model
-        save(handles.validation_file, 'validation');
-        handles.validation = validation;
-        
-        % Update GUI checks
-        handles = ET_CheckFiles(handles);
-        
-        set(handles.Calibration_Axis_Title,'String','Validation');
-        ET_ShowValidation(handles);
-    else
-        
-        fprintf('ET : Validation model already loaded\n');
-        
     end
-    
     
 end
 
@@ -256,8 +263,11 @@ if do_gaze_pupils
     % Only check MR clean flag for gaze movie analysis
     do_mrclean    = get(handles.MRClean_Popup,'Value') == 2;
     
-    set(handles.Calibration_Axis_Title,'String','Calibration');
-    ET_ShowCalibration(handles);
+    
+    if get(handles.do_pupilometry_only,'Value')==0,
+        set(handles.Calibration_Axis_Title,'String','Calibration');
+        ET_ShowCalibration(handles);
+    end
     
     video_outfile = fullfile(handles.gaze_dir,'Gaze_Pupils');
     gaze_pupils = ET_Video_Pupilometry(...
@@ -280,103 +290,106 @@ else
     fprintf('ET : Gaze pupilometry already loaded\n');
 end
 
-if 1
-    % edit JD: clean up before reapplying models -- this is in place so we can easily
-    % update the calibration model with motion estimates and reapply it
-    fprintf('ET : cleaning up before re-applying models\n');
-    pupils=handles.gaze_pupils;
-    pupils=rmfield(pupils,{'gaze_x'});%,'gaze_y','gaze_a0'});
-    if isfield(pupils,'gazeVal_x')
-        pupils=rmfield(pupils,{'gazeVal_x'});%,'gazeVal_y','gazeVal_a0'});
+if get(handles.do_pupilometry_only,'Value')==0,
+    
+    if 1
+        % edit JD: clean up before reapplying models -- this is in place so we can easily
+        % update the calibration model with motion estimates and reapply it
+        fprintf('ET : cleaning up before re-applying models\n');
+        pupils=handles.gaze_pupils;
+        pupils=rmfield(pupils,{'gaze_x'});%,'gaze_y','gaze_a0'});
+        if isfield(pupils,'gazeVal_x')
+            pupils=rmfield(pupils,{'gazeVal_x'});%,'gazeVal_y','gazeVal_a0'});
+        end
+        if isfield(pupils,'gazeVal_filt_x')
+            pupils=rmfield(pupils,{'gazeVal_filt_x'});%,'gazeVal_filt_y','gazeVal_filt_a0'});
+        end
+        if isfield(pupils,'gaze_filt_x')
+            pupils=rmfield(pupils,{'gaze_filt_x'});%,'gaze_filt_y','gaze_filt_a0'});
+        end
+        save(handles.gaze_pupils_file,'pupils','-append');
+        handles.gaze_pupils=pupils;
     end
-    if isfield(pupils,'gazeVal_filt_x')
-        pupils=rmfield(pupils,{'gazeVal_filt_x'});%,'gazeVal_filt_y','gazeVal_filt_a0'});
+    
+    
+    % apply Calibration model to the raw pupils
+    if sum(get(handles.Cal_Video_File,'ForegroundColor')==[0 0.75 0])==3 && ~isfield(handles.gaze_pupils,'gaze_x')
+        fprintf('ET : applying Calibration model\n');
+        pupils=handles.gaze_pupils;
+        for ifr=1:length(pupils)
+            % Use validation model
+            [pupils(ifr).gaze_x,pupils(ifr).gaze_y] = ET_ApplyCalibration(pupils(ifr).px, pupils(ifr).py, handles.calibration.C);
+        end
+        save(handles.gaze_pupils_file,'pupils','-append');
+        handles.gaze_pupils=pupils;
+    else
+        fprintf('ET : Calibration model missing or already applied\n');
     end
-    if isfield(pupils,'gaze_filt_x')
-      pupils=rmfield(pupils,{'gaze_filt_x'});%,'gaze_filt_y','gaze_filt_a0'});
+    
+    
+    % apply validation model as well to the pupils
+    if sum(get(handles.Val_Video_File,'ForegroundColor')==[0 0.75 0])==3 && ~isfield(handles.gaze_pupils,'gazeVal_x')
+        fprintf('ET : applying Validation model\n');
+        pupils=handles.gaze_pupils;
+        for ifr=1:length(pupils)
+            % Use validation model
+            [pupils(ifr).gazeVal_x,pupils(ifr).gazeVal_y] = ET_ApplyCalibration(pupils(ifr).px, pupils(ifr).py, handles.validation.C);
+        end
+        save(handles.gaze_pupils_file,'pupils','-append');
+        handles.gaze_pupils=pupils;
+    else
+        fprintf('ET : Validation model missing or already applied\n');
     end
-    save(handles.gaze_pupils_file,'pupils','-append');
-    handles.gaze_pupils=pupils;
+    
+    %% Run spike and drift corrections
+    if isfield(handles.gaze_pupils,'gaze_x') && ~isfield(handles.gaze_pupils,'gaze_filt_x')
+        % CALIBRATION MODEL
+        % Sampling interval
+        t = [handles.gaze_pupils.t];
+        dt = t(2) - t(1);
+        % Uncorrected gaze timeseries
+        x  = [handles.gaze_pupils.gaze_x];
+        y  = [handles.gaze_pupils.gaze_y];
+        a0 = [handles.gaze_pupils.area_correct];
+        % Despike and drift correct
+        gaze_filt = ET_SpikeDriftCorrect(x,y,a0,dt);
+        pupils=handles.gaze_pupils;
+        for ifr=1:length(pupils)
+            pupils(ifr).gaze_filt_x=gaze_filt.x(ifr);
+            pupils(ifr).gaze_filt_y=gaze_filt.y(ifr);
+            pupils(ifr).gaze_filt_a0=gaze_filt.a0(ifr);
+        end
+        save(handles.gaze_pupils_file,'pupils','-append');
+        handles.gaze_pupils=pupils;
+    else
+        fprintf('ET : Spike/drift correction already applied\n');
+    end
+    
+    if isfield(handles.gaze_pupils,'gazeVal_x') && ~isfield(handles.gaze_pupils,'gazeVal_filt_x')
+        % VALIDATION MODEL
+        % Uncorrected gaze timeseries
+        x  = [handles.gaze_pupils.gazeVal_x];
+        y  = [handles.gaze_pupils.gazeVal_y];
+        % Despike and drift correct
+        gaze_filt = ET_SpikeDriftCorrect(x,y,a0,dt);
+        pupils=handles.gaze_pupils;
+        for ifr=1:length(pupils)
+            pupils(ifr).gazeVal_filt_x=gaze_filt.x(ifr);
+            pupils(ifr).gazeVal_filt_y=gaze_filt.y(ifr);
+            pupils(ifr).gazeVal_filt_a0=gaze_filt.a0(ifr);
+        end
+        save(handles.gaze_pupils_file,'pupils','-append');
+        handles.gaze_pupils=pupils;
+    end
+    
+    %% Create HTML report
+    
+    ET_PupilometryReport(handles);
+    
+    %% Export text results
+    
+    ET_ExportGaze(handles);
 end
-
-
-% apply Calibration model to the raw pupils
-if sum(get(handles.Cal_Video_File,'ForegroundColor')==[0 0.75 0])==3 && ~isfield(handles.gaze_pupils,'gaze_x')
-    fprintf('ET : applying Calibration model\n');
-    pupils=handles.gaze_pupils;
-    for ifr=1:length(pupils)
-        % Use validation model
-        [pupils(ifr).gaze_x,pupils(ifr).gaze_y] = ET_ApplyCalibration(pupils(ifr).px, pupils(ifr).py, handles.calibration.C);
-    end
-    save(handles.gaze_pupils_file,'pupils','-append');
-    handles.gaze_pupils=pupils;
-else
-    fprintf('ET : Calibration model missing or already applied\n');
-end
-
-
-% apply validation model as well to the pupils
-if sum(get(handles.Val_Video_File,'ForegroundColor')==[0 0.75 0])==3 && ~isfield(handles.gaze_pupils,'gazeVal_x')
-    fprintf('ET : applying Validation model\n');
-    pupils=handles.gaze_pupils;
-    for ifr=1:length(pupils)
-        % Use validation model
-        [pupils(ifr).gazeVal_x,pupils(ifr).gazeVal_y] = ET_ApplyCalibration(pupils(ifr).px, pupils(ifr).py, handles.validation.C);
-    end
-    save(handles.gaze_pupils_file,'pupils','-append');
-    handles.gaze_pupils=pupils;
-else
-    fprintf('ET : Validation model missing or already applied\n');
-end
-
-%% Run spike and drift corrections
-if isfield(handles.gaze_pupils,'gaze_x') && ~isfield(handles.gaze_pupils,'gaze_filt_x')
-    % CALIBRATION MODEL
-    % Sampling interval
-    t = [handles.gaze_pupils.t];
-    dt = t(2) - t(1);
-    % Uncorrected gaze timeseries
-    x  = [handles.gaze_pupils.gaze_x];
-    y  = [handles.gaze_pupils.gaze_y];
-    a0 = [handles.gaze_pupils.area_correct];
-    % Despike and drift correct
-    gaze_filt = ET_SpikeDriftCorrect(x,y,a0,dt);
-    pupils=handles.gaze_pupils;
-    for ifr=1:length(pupils)
-        pupils(ifr).gaze_filt_x=gaze_filt.x(ifr);
-        pupils(ifr).gaze_filt_y=gaze_filt.y(ifr);
-        pupils(ifr).gaze_filt_a0=gaze_filt.a0(ifr);
-    end
-    save(handles.gaze_pupils_file,'pupils','-append');
-    handles.gaze_pupils=pupils;
-else
-    fprintf('ET : Spike/drift correction already applied\n');
-end
-
-if isfield(handles.gaze_pupils,'gazeVal_x') && ~isfield(handles.gaze_pupils,'gazeVal_filt_x')
-    % VALIDATION MODEL
-    % Uncorrected gaze timeseries
-    x  = [handles.gaze_pupils.gazeVal_x];
-    y  = [handles.gaze_pupils.gazeVal_y];
-    % Despike and drift correct
-    gaze_filt = ET_SpikeDriftCorrect(x,y,a0,dt);
-    pupils=handles.gaze_pupils;
-    for ifr=1:length(pupils)
-        pupils(ifr).gazeVal_filt_x=gaze_filt.x(ifr);
-        pupils(ifr).gazeVal_filt_y=gaze_filt.y(ifr);
-        pupils(ifr).gazeVal_filt_a0=gaze_filt.a0(ifr);
-    end
-    save(handles.gaze_pupils_file,'pupils','-append');
-    handles.gaze_pupils=pupils;
-end
-
-%% Create HTML report
-
-ET_PupilometryReport(handles);
-
-%% Export text results
-
-ET_ExportGaze(handles);
 
 %% Postamble
 

@@ -26,6 +26,8 @@ if nargin < 1; fr_pair = []; return; end
 if nargin < 2; imode = 'interlaced'; end
 if nargin < 3, currentFrame = 1; end
 
+fr_pair=[];
+
 % Flags
 do_intensity_normalize = false;
 
@@ -41,7 +43,7 @@ switch lower(imode)
         % Load one frame from raw video (interlaced or progressive)
         if ~ismac
             fr = (read(v_in, currentFrame));
-            keep_going = currentFrame+1;
+            keep_going = (currentFrame+1)<=v_in.NumberOfFrames;
         else
             fr = v_in.Frame;
             keep_going = v_in.nextFrame;
@@ -57,13 +59,22 @@ switch lower(imode)
         % Load two frames
         if ~ismac
             fr_odd = (read(v_in, currentFrame));
-            fr_even = (read(v_in, currentFrame+1));
-            keep_going = currentFrame+2;
+            keep_going = (currentFrame+1)<=v_in.NumberOfFrames;
+            if keep_going
+                fr_even = (read(v_in, currentFrame+1));
+                keep_going = (currentFrame+2)<v_in.NumberOfFrames;
+            else
+                return
+            end
         else
             fr_odd = v_in.Frame;
             keep_going = v_in.nextFrame;
-            fr_even = v_in.Frame;
-            keep_going = v_in.nextFrame;
+            if keep_going
+                fr_even = v_in.Frame;
+                keep_going = v_in.nextFrame;
+            else
+                return;
+            end
         end
         % Collapse RGB to scalar doubles
         fr_odd = mean(fr_odd,3);
