@@ -29,14 +29,8 @@ function ET_PlotCalibration(px, py, calibration, plot_stub, VID, plotheatmap)
 %
 % Copyright 2013 California Institute of Technology.
 
-if nargin<5
-    VID=[];
-end
-if nargin<6
-    plotheatmap=1;
-end
-
-
+if nargin < 5; VID = []; end
+if nargin < 6; plotheatmap = true; end
 
 % Heatmap smoothing (Gaussian sigma)
 hmap_sigma = 3.0;
@@ -60,47 +54,57 @@ set(hf,'Position',[100 100 640 320]);
 set(hf,'PaperPositionMode','auto','Visible','off');
 
 if plotheatmap
-    
-    clf;
-    colormap(hot)
-    % Smoothed heatmap
-    imagesc(fixations.xv, fixations.yv, fixations.hmap);
-    axis equal ij tight
-    hold on
-    % Overlay calibration points
-    for fc = 1:length(fx)
-        plot(fx(fc), fy(fc), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',5);
-    end
-    hold off
-    % Print figure
-    hmap_raw_png = [plot_stub '_hmap_raw.png'];
-    fprintf('ET : Printing calibration figure to %s\n', hmap_raw_png);
-    print(hf, hmap_raw_png, '-dpng', '-r200');
-    
-    
-    clf;
-    colormap hot
-    % Draw calibrated heat map
-    ET_HeatPlot(gaze_x, gaze_y, hmap_sigma, true);
-    % Print figure
-    hmap_cal_png = [plot_stub '_hmap_cal.png'];
-    print(hf, hmap_cal_png, '-dpng', '-r200');
-    
+  
+  clf;
+  colormap(hot)
+  
+  % Smoothed heatmap
+  imagesc(fixations.xv, fixations.yv, fixations.hmap);
+  axis equal ij tight
+  hold on
+  
+  % Overlay calibration points
+  for fc = 1:length(fx)
+    plot(fx(fc), fy(fc), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',5);
+  end
+  hold off
+  
+  % Print figure
+  hmap_raw_png = [plot_stub '_hmap_raw.png'];
+  fprintf('ET : Printing calibration figure to %s\n', hmap_raw_png);
+  print(hf, hmap_raw_png, '-dpng', '-r200');
+  
+  clf;
+  colormap hot
+  
+  % Draw calibrated heat map
+  ET_HeatPlot(gaze_x, gaze_y, hmap_sigma, true);
+  
+  % Print figure
+  hmap_cal_png = [plot_stub '_hmap_cal.png'];
+  print(hf, hmap_cal_png, '-dpng', '-r200');
+  
 end
 
 if ~isempty(VID)
-    clf
-    imshow(VID);
-    axis equal ij tight
-    hold on
-    % Overlay calibration points
-    for fc = 1:length(fx)
-        plot(fx(fc), fy(fc), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',5);
-    end
-    hold off
-    % Print figure
-    fix_png = [plot_stub '_fix.png'];
-    print(hf, fix_png, '-dpng', '-r200');
+  
+  clf
+  
+  imshow(VID);
+  
+  axis equal ij tight
+  
+  % Overlay calibration points
+  hold on
+  for fc = 1:length(fx)
+    plot(fx(fc), fy(fc), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',5);
+  end
+  hold off
+  
+  % Print figure
+  fix_png = [plot_stub '_fix.png'];
+  print(hf, fix_png, '-dpng', '-r200');
+  
 end
 
 

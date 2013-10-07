@@ -37,7 +37,49 @@ ny0 = v_in.Height;
 
 % Handle interlaced and progressive frames
 switch lower(imode)
+  
+  case 'interlaced'
     
+    % Load one frame from raw video (interlaced or progressive)
+    if ~ismac
+      fr = (read(v_in, currentFrame));
+      keep_going = currentFrame+1;
+    else
+      fr = v_in.Frame;
+      keep_going = v_in.nextFrame;
+    end
+    % Collapse RGB to scalar doubles
+    fr = mean(fr,3);
+    
+    % Deinterlace with row position correction
+    [fr_odd, fr_even] = ET_Deinterlace(fr);
+    
+  case 'progressive'
+    
+    % Load two frames
+    if ~ismac
+      fr_odd = (read(v_in, currentFrame));
+      fr_even = (read(v_in, currentFrame+1));
+      keep_going = currentFrame+2;
+    else
+      fr_odd = v_in.Frame;
+      keep_going = v_in.nextFrame;
+      fr_even = v_in.Frame;
+      keep_going = v_in.nextFrame;
+    end
+    % Collapse RGB to scalar doubles
+    fr_odd = mean(fr_odd,3);
+    fr_even = mean(fr_even,3);
+    
+  otherwise
+    
+    % Return empty frames
+    fr_odd = nan(ny0, nx0);
+    fr_even = fr_odd;
+    keep_going = false;
+    
+<<<<<<< HEAD
+=======
     case 'interlaced'
         
         % Load one frame from raw video (interlaced or progressive)
@@ -87,6 +129,7 @@ switch lower(imode)
         fr_even = fr_odd;
         keep_going = false;
         
+>>>>>>> 0048390910d96788e005455708b8647e6556e57c
 end
 
 % Stack frame pair in 3rd dimension
@@ -94,11 +137,12 @@ end
 fr_pair = cat(3,fr_even,fr_odd);
 
 if ~ismac
-    fr_pair=fr_pair/255;
+  fr_pair=fr_pair/255;
 end
+
 % Normalize intensities to range [0,1]
 if do_intensity_normalize
-    min_fr = min(fr_pair(:));
-    max_fr = max(fr_pair(:));
-    fr_pair = (fr_pair - min_fr) / (max_fr - min_fr);
+  min_fr = min(fr_pair(:));
+  max_fr = max(fr_pair(:));
+  fr_pair = (fr_pair - min_fr) / (max_fr - min_fr);
 end
