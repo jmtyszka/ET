@@ -26,6 +26,8 @@ if nargin < 1; fr_pair = []; return; end
 if nargin < 2; imode = 'interlaced'; end
 if nargin < 3, currentFrame = 1; end
 
+fr_pair=[];
+
 % Flags
 do_intensity_normalize = false;
 
@@ -76,6 +78,58 @@ switch lower(imode)
     fr_even = fr_odd;
     keep_going = false;
     
+<<<<<<< HEAD
+=======
+    case 'interlaced'
+        
+        % Load one frame from raw video (interlaced or progressive)
+        if ~ismac
+            fr = (read(v_in, currentFrame));
+            keep_going = (currentFrame+1)<=v_in.NumberOfFrames;
+        else
+            fr = v_in.Frame;
+            keep_going = v_in.nextFrame;
+        end
+        % Collapse RGB to scalar doubles
+        fr = mean(fr,3);
+        
+        % Deinterlace with row position correction
+        [fr_odd, fr_even] = ET_Deinterlace(fr);
+        
+    case 'progressive'
+        
+        % Load two frames
+        if ~ismac
+            fr_odd = (read(v_in, currentFrame));
+            keep_going = (currentFrame+1)<=v_in.NumberOfFrames;
+            if keep_going
+                fr_even = (read(v_in, currentFrame+1));
+                keep_going = (currentFrame+2)<v_in.NumberOfFrames;
+            else
+                return
+            end
+        else
+            fr_odd = v_in.Frame;
+            keep_going = v_in.nextFrame;
+            if keep_going
+                fr_even = v_in.Frame;
+                keep_going = v_in.nextFrame;
+            else
+                return;
+            end
+        end
+        % Collapse RGB to scalar doubles
+        fr_odd = mean(fr_odd,3);
+        fr_even = mean(fr_even,3);
+        
+    otherwise
+        
+        % Return empty frames
+        fr_odd = nan(ny0, nx0);
+        fr_even = fr_odd;
+        keep_going = false;
+        
+>>>>>>> 0048390910d96788e005455708b8647e6556e57c
 end
 
 % Stack frame pair in 3rd dimension
