@@ -4,6 +4,7 @@ function [fr_pair, keep_going] = ET_LoadFramePair(v_in, imode, currentFrame)
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 02/05/2013 JMT From scratch
+%          01/24/2014 JMT Add Wolfgang Pauli's exception handling for progressive
 %
 % This file is part of ET.
 %
@@ -20,7 +21,7 @@ function [fr_pair, keep_going] = ET_LoadFramePair(v_in, imode, currentFrame)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2013 California Institute of Technology.
+% Copyright 2013-2014 California Institute of Technology.
 
 if nargin < 1; fr_pair = []; return; end
 if nargin < 2; imode = 'interlaced'; end
@@ -55,26 +56,54 @@ switch lower(imode)
         
     case 'progressive'
         
-        % Load two frames
-        if ~ismac
-            fr_odd = (read(v_in, currentFrame));
-            keep_going = (currentFrame+1)<=v_in.NumberOfFrames;
-            if keep_going
-                fr_even = (read(v_in, currentFrame+1));
-                keep_going = (currentFrame+2)<v_in.NumberOfFrames;
-            else
-                return
-            end
-        else
-            fr_odd = v_in.Frame;
-            keep_going = v_in.nextFrame;
-            if keep_going
-                fr_even = v_in.Frame;
+        % Load two frames from progressive video
+        
+        switch computer
+            
+            case {'GLNXA64','PCWIN','PCWIN64'}
+                    
+                % Windows/Linux video IO
+                % Handle lack of second frame in pair using try-catch
+                % Thanks Wolfgang!
+                
+                keep_going = true;
+                
+                try
+                    fr_odd = (read(v_in, currentFrame));
+                catch
+                    fprintf('ET_LoadFramePair : problem reading odd frame\n');
+                    keep_going = false;
+                    return
+                end
+
+                try
+                    fr_even = (read(v_in, currentFrame+1));
+                catch
+                    fprintf('ET_LoadFramePair : problem reading even frame\n');
+                    keep_going = false;
+                    return
+                end
+                
+            case 'MACI64'
+                
+                % Use VideoUtils_v1.2.4 for Mountain Lion onwards
+                fr_odd = v_in.Frame;
                 keep_going = v_in.nextFrame;
-            else
-                return;
-            end
+                
+                if keep_going
+                    fr_even = v_in.Frame;
+                    keep_going = v_in.nextFrame;
+                else
+                    return;
+                end
+                
+            otherwise
+                
+                fprintf('ET_LoadFramePair : unsupported architecture (%s)\n', computer);
+                return
+                
         end
+        
         % Collapse RGB to scalar doubles
         fr_odd = mean(fr_odd,3);
         fr_even = mean(fr_even,3);

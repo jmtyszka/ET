@@ -6,6 +6,7 @@ function glint = ET_IdentifyMainGlint(bw_glint, p, DEBUG)
 % PLACE  : Caltech
 % DATES  : 02/22/2013 JMT From scratch
 %          04/30/2013 JMT Add glint saturation tail handling
+%          01/28/2014 JMT Increased maximum glint radius to 16 for Wolfgang
 %
 % This file is part of ET.
 %
@@ -22,7 +23,8 @@ function glint = ET_IdentifyMainGlint(bw_glint, p, DEBUG)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2013 California Institute of Technology.
+% Copyright 2013-2014 California Institute of Technology.
+
 if nargin < 3; DEBUG = false; end
 
 % Init glint return structure
@@ -63,10 +65,11 @@ if n_glints > 0
         % JD think this is likely dependent on how the camera was placed  
         % => be agnostic and determine which is overestimated
         % also need to find out which half of the glint is "weightier"
-        tmp=bw_glint(floor(bb(2)):ceil(bb(2)+bb(4)),floor(bb(1)):ceil(bb(1)+bb(3)));
-        collapseh=sum(tmp,1);ssh=sum((collapseh-collapseh(end:-1:1)).^2);
-        collapsew=sum(tmp,2);ssw=sum((collapsew-collapsew(end:-1:1)).^2);
-        if ssh>ssw,
+        tmp = bw_glint(floor(bb(2)):ceil(bb(2)+bb(4)),floor(bb(1)):ceil(bb(1)+bb(3)));
+        collapseh = sum(tmp,1);ssh=sum((collapseh-collapseh(end:-1:1)).^2);
+        collapsew = sum(tmp,2);ssw=sum((collapsew-collapsew(end:-1:1)).^2);
+        
+        if ssh > ssw,
             % height should be trusted
             rr=bb(4)/2;
             tmpleft=sum(sum(tmp(:,1:floor(end/2))));
@@ -102,10 +105,11 @@ if n_glints > 0
     d = sqrt(gpvx.^2 + gpvy.^2);
     
     % Select glints by area
-    good_glints = find(gr < 8 & gpvy < 0);
     % TODO: probably should improve this criterion; should not allow glint
     % to be outside of the eyeball, for instance...
+    % 2014-01-28 JMT Increased glint radius limit to 16 pixels for Wolfgang
     
+    good_glints = find(gr < 16 & gpvy < 0);
     
     if ~isempty(good_glints)
         
