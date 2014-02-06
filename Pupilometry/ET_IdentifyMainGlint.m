@@ -1,4 +1,4 @@
-function glint = ET_IdentifyMainGlint(bw_glint, p, DEBUG)
+function glint = ET_IdentifyMainGlint(bw_glint, p, options)
 % Select best candidate for main glint from glints list
 % - allow for saturated glint ring down (L-R raster)
 %
@@ -25,7 +25,7 @@ function glint = ET_IdentifyMainGlint(bw_glint, p, DEBUG)
 %
 % Copyright 2013-2014 California Institute of Technology.
 
-if nargin < 3; DEBUG = false; end
+if nargin < 3; options.debug = false; end
 
 % Init glint return structure
 glint.gx    = NaN;
@@ -126,7 +126,7 @@ if n_glints > 0
         glint.gy = gy(best_glint);
         glint.d_eff = 2 * gr(best_glint);
         
-        if DEBUG
+        if options.debug
             fprintf('ET : Best glint (r = %0.1f d = %0.1f)\n', gr(best_glint), d_good(imin));
         end
         

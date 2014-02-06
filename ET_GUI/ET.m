@@ -201,58 +201,6 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
 end
 
 
-% --- Executes on selection change in ROI_Rotation_Popup.
-function ROI_Rotation_Popup_Callback(hObject, eventdata, handles)
-% hObject    handle to ROI_Rotation_Popup (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns ROI_Rotation_Popup contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from ROI_Rotation_Popup
-
-% Refresh ROI image in GUI
-handles = ET_UpdateROIImage(handles);
-
-% Resave handles
-guidata(hObject, handles);
-
-
-% --- Executes during object creation, after setting all properties.
-function ROI_Rotation_Popup_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to ROI_Rotation_Popup (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on selection change in MRClean_Popup.
-function MRClean_Popup_Callback(hObject, eventdata, handles)
-% hObject    handle to MRClean_Popup (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns MRClean_Popup contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from MRClean_Popup
-
-
-% --- Executes during object creation, after setting all properties.
-function MRClean_Popup_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to MRClean_Popup (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
 % --- Executes on button press in Gaze_Pupils_Checkbox.
 function Gaze_Pupils_Checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to Gaze_Pupils_Checkbox (see GCBO)

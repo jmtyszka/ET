@@ -54,9 +54,3 @@ pupil.blink = false;
 pupil.gx     = NaN;
 pupil.gy     = NaN;
 pupil.gd_eff = NaN;
-
-% ROI parameters
-pupil.rx0 = NaN;
-pupil.rx1 = NaN;
-pupil.ry0 = NaN;
-pupil.ry1 = NaN;

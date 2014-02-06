@@ -1,16 +1,15 @@
-function [pupil, roi] = ET_FindPupilInFrame(fr, pd_range, roi_hw)
+function pupil = ET_FindPupilInFrame(fr)
 % Find best candidate for pupil within frame
-% - start with optional pupil estimate
+% - assumes frame has already been cropped to eye region
 %
 % ARGS:
 % fr     = scalar double video frame
-% pd_rng = fractional pupil size range [0.1 0.2]
-% roi_hw  = optional forced half-width for ROI (in pixels)
 %
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 02/07/2013 JMT Extract and rewrite
 %          03/07/2013 JMT Add optional ROI width argument
+%          02/05/2014 JMT Strip out ROI code
 %
 % This file is part of ET.
 % 
@@ -30,14 +29,13 @@ function [pupil, roi] = ET_FindPupilInFrame(fr, pd_range, roi_hw)
 % Copyright 2013 California Institute of Technology.
 
 % Default PD range (10% to 30% of frame width)
-if nargin < 2; pd_range = [0.1 0.3]; end
-if nargin < 3; roi_hw = []; end
+pd_range = [0.1 0.3];
 
 % Initialize pupil structure
 pupil = ET_NewPupil;
 
 % Input frame width 
-[ny,nx] = size(fr);
+nx = size(fr,2);
 
 % Scale factor mapping input frame to 100 pixels width
 sf = 100 / nx; 
@@ -79,38 +77,3 @@ y_best = y_max(best) / sf;
 pupil.px     = x_best;
 pupil.py     = y_best;
 pupil.pd_eff = pd_best;
-
-%% Setup ROI around pupil center
-
-% ROI width in pupil diameters
-roi.scale = 3.0;
-
-% Use ROI half width calculated from PD or provided by user
-if isempty(roi_hw)
-  roi.hw = pd_best * roi.scale / 2;
-else
-  roi.hw = roi_hw;
-end
-
-roi.x0 = fix(x_best - roi.hw);
-roi.x1 = fix(x_best + roi.hw);
-roi.y0 = fix(y_best - roi.hw);
-roi.y1 = fix(y_best + roi.hw);
-
-% ROI index vectors
-xrng = roi.x0:roi.x1;
-yrng = roi.y0:roi.y1;
-
-% Out of bounds protection
-xrng(xrng < 1)  = 1;
-xrng(xrng > nx) = nx;
-yrng(yrng < 1)  = 1;
-yrng(yrng > ny) = ny;
-
-% Store ROI pixel ranges
-roi.xrng = xrng;
-roi.yrng = yrng;
-
-% Set ROI rotation (degrees)
-roi.rotation = 0;
-

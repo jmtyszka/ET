@@ -31,7 +31,22 @@ DEBUG = false;
 do_mrclean = get(handles.MR_Clean_Radio,'Value');
 
 try
-    v_in = VideoPlayer(v_infile);
+    
+    switch computer
+        
+        case 'MACI64'
+            v_in = VideoPlayer(v_infile);
+    
+        case {'PCWIN','PCWIN64'}
+            v_in = VideoReader(v_infile);
+            
+        case 'GLNXA64'
+            v_in = VideoReader(v_infile);
+            
+        otherwise            
+            
+    end
+    
 catch
     fprintf('ET_Prep : Problem opening calibration video to read\n');
     return
@@ -45,7 +60,21 @@ v_outfile = fullfile(v_outpath, v_outstub);
 ROI_w = fix(str2double(get(handles.ROI_size,'String')));
 
 try
-    v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w]);
+    switch computer
+        
+        case 'MACI64'
+            v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w], 'Fps', fps_p);
+            
+        case {'PCWIN','PCWIN64'}
+            v_out = VideoWriter(v_outfile, 'FrameRate', fps_p);
+            
+        case {'GLNXA64'}
+            v_out = VideoWriter(v_outfile, 'FrameRate', fps_p);
+            
+        otherwise
+            
+    end
+           
 catch
     fprintf('ET_Prep : Problem opening calibration video to write\n');
     return

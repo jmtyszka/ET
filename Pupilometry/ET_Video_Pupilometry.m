@@ -1,7 +1,7 @@
-function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file, roi, p_init, C, do_mrclean, handles)
+function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file, p_init, C, handles)
 % Perform pupilometry on all frames of a video
 %
-% USAGE : pupils = ET_Video_Pupilometry(video_infile, pupils_file, video_outfile, roi, p_init, C, do_mrclean, handles)
+% USAGE : pupils = ET_Video_Pupilometry(video_infile, pupils_file, video_outfile, p_init, C, handles)
 %
 % - find pupil and fit ellipse
 % - find main glint and fit circle
@@ -40,8 +40,7 @@ function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file,
 
 % Defaults
 if nargin < 6; C = []; end
-if nargin < 7; do_mrclean = false; end
-if nargin < 8; handles = []; end
+if nargin < 7; handles = []; end
 
 % Containing directory for video file
 dir_name = fileparts(video_infile);
@@ -60,17 +59,32 @@ end
 
 % Create input video object
 try
-    if ~ismac
-        v_in = VideoReader(video_infile);
-    else
-        v_in = VideoPlayer(video_infile, 'Verbose', false, 'ShowTime', false);
+    
+    switch computer
+        
+        case {'PCWIN','PCWIN4'}
+            v_in = VideoReader(video_infile);
+            
+        case {'GLNXA64'}
+            v_in = VideoReader(video_infile);
+            
+        case {'MACI64'}
+            v_in = VideoPlayer(video_infile, 'Verbose', false, 'ShowTime', false);
+            
+        otherwise            
+            fprintf('ET_Video_Pupilometry : *** Unknown platform (%s)\n', computer);
+            return
+            
     end
+
 catch VIDEO_IN_OPEN
-    fprintf('ET : *** Problem opening input video file\n');
+    
+    fprintf('ET_Video_Pupilometry : *** Problem opening input video file\n');
     rethrow(VIDEO_IN_OPEN);
+    
 end
 
-% Create output video object (AVI file)
+% Create output video object
 % Use video_infile to generate a file stub
 try
     if ~ismac
@@ -79,28 +93,35 @@ try
     else
         v_out = VideoRecorder(video_outfile, 'Format', 'mov', 'Size', [256 256]);
     end
-    %%%
+
 catch VIDEO_OUT_OPEN
+
     fprintf('*** Problem opening output video file\n');
     rethrow(VIDEO_OUT_OPEN);
+    
 end
 
 % Get input video info
 % Calculate frame count, FPS and frame time after interleaved to
 % progressive conversion
-if ~ismac
-    n_frames = v_in.NumberOfFrames;
-else
-    n_frames  = v_in.NumFrames;
-end
+switch computer
+    
+    case {'PCWIN','PCWIN64'}
+        n_frames = v_in.NumberOfFrames;
+        fps = v_in.FrameRate;
 
-
-videomodes=get(handles.videomode_popup,'String');
-video_mode=videomodes{get(handles.videomode_popup,'Value')};
-
-fps_p=str2double(get(handles.fps,'String'));
-if strcmp(video_mode,'interlaced')
-    fps_i = 2 * fps_p;
+    case {'GLNXA64'}
+        n_frames = v_in.NumberOfFrames;
+        fps = v_in.FrameRate;
+        
+    case 'MACI64'
+        n_frames  = v_in.NumFrames;
+        fps = v_in.FramesPerSecond;
+        
+    otherwise
+        fprintf('ET_Video_Pupilometry : *** Unknown platform (%s)\n', computer);
+        return
+        
 end
 
 % Setup refine pupil options from GUI
@@ -113,7 +134,7 @@ fprintf('Processing %s\n', video_infile);
 % Preallocate pupil structure array covering all frames
 pupils(1:n_frames) = ET_NewPupil;
 
-% Running progressive frame count
+% Running frame count
 fc = 0;
 
 %% MAIN LOOPS
@@ -136,120 +157,96 @@ end
 fprintf('--------------------------\n');
 fprintf('Video pupilometry started at %s\n', datestr(now));
 
-% Start timer for FPS
+% Start timer for processed FPS
 tic;
 
 % Loop over interlaced frame pairs of movie
-keep_going=true;
-pc=1;
+keep_going = true;
+
 while keep_going
-% for pc = 1:n_frames
-     if pc>1
-        % save the frame pair for MR correction
-        prev_fr_pair=fr_pair;
-    end
     
-    [fr_pair,keep_going] = ET_LoadFramePair(v_in, video_mode, pc);
+    fr = ET_LoadFrame(v_in, video_mode, pc);
     
-    if isempty(fr_pair)
+    if isempty(fr)
         % may happen in the progressive case
         break
     end
     
-    % Clean MR artifacts
-    if do_mrclean && pc>1
-        fr0_pair = ET_MRCleanJD(fr_pair,prev_fr_pair,get(handles.Debug_Toggle,'Value'));
+    % Increment frame counter
+    fc = fc + 1;
+    
+    % Refine pupil parameter estimates
+    p_new = ET_RefinePupil(fr, p_run, options);
+    
+    % Add timestamp for this pupil
+    p_new.t = fc / fps;
+    
+    if ~isempty(C)
+        % Use appropriate calibration matrix for pupil-only or pupil-glint
+        [p_new.gaze_x, p_new.gaze_y] = ET_ApplyCalibration([p_new.px], [p_new.py], C);
+    end
+    
+    % Save pupil in array
+    pupils(fc) = p_new;
+    
+    % New pupil becomes running pupil
+    p_run = p_new;
+    
+end % Frame interleaf loop
+
+% Update progress every 10 progressive frames
+
+if mod(fc,10) == 0
+    
+    % Overlay pupil, glint and ROI onto frame image
+    pupil_overlay = ET_OverlayPupil(fr, p_run);
+    imshow(pupil_overlay, 'parent', handles.Eye_Video_Axes);
+    
+    % Show calibrated gaze position in GUI if calibration model exists
+    if ~isempty(C)
+        ET_PlotGaze(p_run, handles.Gaze_Axes, 'plot');
+    end
+    
+    drawnow;
+    
+    % Write frame to output video file
+    %%% edit JD 9/26/13
+    if ~ismac
+        writeVideo(v_out,pupil_overlay);
     else
-        fr0_pair = fr_pair;
+        v_out.addFrame(pupil_overlay);
+    end
+    %%%
+    % Update progress bar
+    if ~isempty(handles.Progress_Bar)
+        set(handles.Progress_Bar,'Value', pc/n_frames);
     end
     
-    % Loop over each interleaved frame
-    for ic = 1:2
-        
-        % Increment frame counter
-        fc = fc + 1;
-        
-        % Current frame
-        fr = fr0_pair(:,:,ic);
-        
-        % Refine pupil parameter estimates
-        p_new = ET_RefinePupil(fr, roi, p_run, options);
-        
-        % Add timestamp for this pupil
-        switch lower(video_mode)
-            case 'interlaced'
-                p_new.t = fc / fps_i;
-            case 'progressive'
-                p_new.t = fc / fps_p;
-        end
-        
-        if ~isempty(C)
-            % Use appropriate calibration matrix for pupil-only or pupil-glint
-            [p_new.gaze_x, p_new.gaze_y] = ET_ApplyCalibration([p_new.px], [p_new.py], C);
-        end
-        
-        
-        % Save pupil in array
-        pupils(fc) = p_new;
-        
-        % New pupil becomes running pupil
-        p_run = p_new;
-        
-    end % Frame interleaf loop
+    % Show current threshold in GUI
+    set(handles.Pupil_Threshold,'String',sprintf('%0.3f', p_run.thresh));
     
-    % Update progress every 10 progressive frames
+    % Set threshold to NaN to refresh pupil threshold on next frame
+    p_run.thresh = NaN;
     
-    if mod(fc,10) == 0
-        
-        % Overlay pupil, glint and ROI onto frame image
-        pupil_overlay = ET_OverlayPupil(fr, roi, p_run);
-        imshow(pupil_overlay, 'parent', handles.Eye_Video_Axes);
-        
-        % Show calibrated gaze position in GUI if calibration model exists
-        if ~isempty(C)
-            ET_PlotGaze(p_run, handles.Gaze_Axes, 'plot');
-        end
-        
-        drawnow;
-        
-        % Write frame to output video file
-        %%% edit JD 9/26/13
-        if ~ismac
-            writeVideo(v_out,pupil_overlay);
-        else
-            v_out.addFrame(pupil_overlay);
-        end
-        %%%
-        % Update progress bar
-        if ~isempty(handles.Progress_Bar)
-            set(handles.Progress_Bar,'Value', pc/n_frames);
-        end
-        
-        % Show current threshold in GUI
-        set(handles.Pupil_Threshold,'String',sprintf('%0.3f', p_run.thresh));
-        
-        % Set threshold to NaN to refresh pupil threshold on next frame
-        p_run.thresh = NaN;
-        
-    end
+end
+
+% Check for stop button press
+handles = guidata(handles.Main_Figure);
+if handles.stop_pressed
     
-    % Check for stop button press
-    handles = guidata(handles.Main_Figure);
-    if handles.stop_pressed
-        
-        % Reset stop button flag and exit loop
-        fprintf('ET : Stop detected in video pupilometry - exiting\n');
-        handles.stop_pressed = false;
-        break
-        
-    end
+    % Reset stop button flag and exit loop
+    fprintf('ET : Stop detected in video pupilometry - exiting\n');
+    handles.stop_pressed = false;
+    break
     
-    switch video_mode
-        case 'interlaced'
-            pc = pc + 1;
-        case 'progressive'
-            pc = pc + 2;
-    end
+end
+
+switch video_mode
+    case 'interlaced'
+        pc = pc + 1;
+    case 'progressive'
+        pc = pc + 2;
+end
 end % Movie loop
 
 % Stop timer
@@ -271,7 +268,7 @@ fprintf('Total time : %0.1f s\n', tt);
 fprintf('Mean rate  : %0.1f fps\n', n_frames * 2 / tt);
 
 % Save pupilometry results in Gaze subdirectory
-save(pupils_file,'pupils','roi');
+save(pupils_file,'pupils');
 
 % Clean up
 clear v_in

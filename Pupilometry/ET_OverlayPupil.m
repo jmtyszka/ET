@@ -1,12 +1,14 @@
-function fr_over = ET_OverlayPupil(fr, roi, p)
+function fr_over = ET_OverlayPupil(fr, p)
 % Draw pupil and glint overlayed on video frame
 %
 % RETURNS:
 % h = handle of new figure axes
+% p = current pupilometry structure
 %
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 02/04/2013 JMT Extract from ET_Pupilometry.m
+%          02/05/2014 JMT Strip out ROI code
 %
 % This file is part of ET.
 % 
@@ -23,22 +25,16 @@ function fr_over = ET_OverlayPupil(fr, roi, p)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2013 California Institute of Technology.
+% Copyright 2013-2014 California Institute of Technology.
 
 % Cross width
 w = 10;
 
-% Extract ROI
-fr_roi = fr(roi.yrng, roi.xrng);
-
-% Rotate ROI
-fr_roi = rot90(fr_roi,fix(roi.rotation/90));
-
 % Robust range adjustment [1,99] percentile
-fr_roi = imadjust(fr_roi);
+fr = imadjust(fr);
 
 % Init RGB image
-fr_over = repmat(fr_roi,[1 1 3]);
+fr_over = repmat(fr,[1 1 3]);
 
 if ~p.blink
   

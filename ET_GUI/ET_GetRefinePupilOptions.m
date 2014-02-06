@@ -29,13 +29,17 @@ function options = ET_GetRefinePupilOptions(handles)
 %
 % Copyright 2013 California Institute of Technology
 
-% Morph-op structured elements
-% Reverse engineer pupil diameter estimate from ROI half-width
-% ROI width is roi.scale times the PD estimate
-roi = handles.roi;
-pd_est = roi.hw * 2 / roi.scale;
-options.pupil_se = strel('disk',fix(pd_est/8));
-options.glint_se = strel('disk',2);
+% Get video frame width for reference
+if isfield(handles,'video_poster_frame')
+    fr_width = size(handles.video_poster_frame,2);
+else
+    fprintf('ET_GetRefinePupilOptions : no poster frame yet - exiting\n');
+    options = [];
+end
+
+% Structured elemetns for pupil and glint preprocessing
+options.pupil_se = strel('disk', fix(fr_width * 0.05));
+options.glint_se = strel('disk', 2);
 
 % Set threshold mode and get optional manual threshold from GUI
 thresh_modes = get(handles.Pupil_Thresh_Popup, 'String');
