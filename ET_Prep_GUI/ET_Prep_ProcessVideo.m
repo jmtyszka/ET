@@ -141,8 +141,8 @@ for fc = 1:n_frames-1
     if mod(fc,30) == 1
        
         % Update raw input and output frames in GUI
-        imshow(in_fr_pair(:,:,1), [0,255], 'Parent', handles.Input_Frame);
-        imshow(out_fr_pair(:,:,1), [0,255], 'Parent', handles.Output_Frame);
+        imshow(in_fr_pair(:,:,1), 'Parent', handles.Input_Frame);
+        imshow(out_fr_pair(:,:,1), 'Parent', handles.Output_Frame);
         
         % Update frame progress fields in GUI
         set(handles.Processing_FPS,'String',sprintf('%0.1f', fc / toc(t0)));

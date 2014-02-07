@@ -31,7 +31,7 @@ if nargin < 2, currentFrame = 1; end
 fr = [];
 
 % Flags
-do_intensity_normalize = false;
+do_intensity_normalize = true;
 
 % Platform dependent video frame read
 
@@ -42,8 +42,10 @@ switch computer
         % Windows/Linux video IO
         
         try
+            
+            % Read single progressive frame
             fr = double(read(v_in, currentFrame));
-            fr = fr/255;
+            
         catch
             fprintf('ET_LoadFrame : problem reading video frame\n');
             return
@@ -53,10 +55,15 @@ switch computer
         
         % Use VideoUtils_v1.2.4 for Mountain Lion onwards
         try
+            
+            % Read single progressive frame
             fr = v_in.Frame;
+            
         catch
+            
             fprintf('ET_LoadFrame : problem reading video frame\n');
             return
+            
         end
         
     otherwise
@@ -71,7 +78,9 @@ fr = mean(fr,3);
 
 % Optional intensity range normalization to [0,1]
 if do_intensity_normalize
+    
     min_fr = min(fr(:));
     max_fr = max(fr(:));
     fr = (fr - min_fr) / (max_fr - min_fr);
+    
 end

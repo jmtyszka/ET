@@ -199,7 +199,7 @@ while keep_going
         
         % Overlay pupil, glint and ROI onto frame image
         pupil_overlay = ET_OverlayPupil(fr, p_run);
-        imshow(pupil_overlay, [0,255], 'parent', handles.Eye_Video_Axes);
+        imshow(pupil_overlay, 'parent', handles.Eye_Video_Axes);
         
         % Show calibrated gaze position in GUI if calibration model exists
         if ~isempty(C)

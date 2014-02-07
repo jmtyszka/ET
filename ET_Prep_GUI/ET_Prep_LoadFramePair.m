@@ -34,10 +34,16 @@ try
         
         case {'GLNXA64','PCWIN','PCWIN64'}
             
-            fr = (read(v_in, handles.currentFrame));
+            % Read interlaced frame
+            fr = double(read(v_in, handles.currentFrame));
+            
+            % Normalize intensity to [0,1]
+            % PC and Linux frame values are in range [0,255]
+            fr = fr / 255.0;
             
         case 'MACI64'
             
+            % Read interlaced frame
             fr = v_in.Frame;
             
         otherwise

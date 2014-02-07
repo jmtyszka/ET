@@ -29,7 +29,7 @@ if isfield(handles,'poster_frame_pair')
   out_fr_pair = ET_Prep_ApplyROI(handles, handles.poster_frame_pair);
   
   % Show processed odd frame in GUI
-  imshow(out_fr_pair(:,:,1), [0,255], 'parent', handles.Output_Frame);
+  imshow(out_fr_pair(:,:,1), 'parent', handles.Output_Frame);
   drawnow
   
 end

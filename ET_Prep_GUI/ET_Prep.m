@@ -140,7 +140,7 @@ switch computer
         
     otherwise
         
-        % Use vision toolbox video IO for now (R2013b)
+        % Use builtin Matlab video reader (R2013b)
         try
             v_in = VideoReader(handles.input_cal_vfile);
         catch READ_CAL_VIDEO
@@ -157,7 +157,7 @@ switch computer
 end
 
 % Show odd frame in input axes
-imshow(poster_frame_pair(:,:,1), [0,255], 'parent', handles.Input_Frame);
+imshow(poster_frame_pair(:,:,1), 'parent', handles.Input_Frame);
 
 % Save first frame pair for ROI updating in GUI
 handles.poster_frame_pair = poster_frame_pair;
