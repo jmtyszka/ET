@@ -39,8 +39,8 @@ function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file,
 % Copyright 2011-2013 California Institute of Technology
 
 % Defaults
-if nargin < 6; C = []; end
-if nargin < 7; handles = []; end
+if nargin < 5; C = []; end
+if nargin < 6; handles = []; end
 
 % Containing directory for video file
 dir_name = fileparts(video_infile);
@@ -71,12 +71,12 @@ try
         case {'MACI64'}
             v_in = VideoPlayer(video_infile, 'Verbose', false, 'ShowTime', false);
             
-        otherwise            
+        otherwise
             fprintf('ET_Video_Pupilometry : *** Unknown platform (%s)\n', computer);
             return
             
     end
-
+    
 catch VIDEO_IN_OPEN
     
     fprintf('ET_Video_Pupilometry : *** Problem opening input video file\n');
@@ -93,9 +93,9 @@ try
     else
         v_out = VideoRecorder(video_outfile, 'Format', 'mov', 'Size', [256 256]);
     end
-
+    
 catch VIDEO_OUT_OPEN
-
+    
     fprintf('*** Problem opening output video file\n');
     rethrow(VIDEO_OUT_OPEN);
     
@@ -109,7 +109,7 @@ switch computer
     case {'PCWIN','PCWIN64'}
         n_frames = v_in.NumberOfFrames;
         fps = v_in.FrameRate;
-
+        
     case {'GLNXA64'}
         n_frames = v_in.NumberOfFrames;
         fps = v_in.FrameRate;
@@ -135,7 +135,7 @@ fprintf('Processing %s\n', video_infile);
 pupils(1:n_frames) = ET_NewPupil;
 
 % Running frame count
-fc = 0;
+fc = 1;
 
 %% MAIN LOOPS
 
@@ -165,15 +165,13 @@ keep_going = true;
 
 while keep_going
     
-    fr = ET_LoadFrame(v_in, video_mode, pc);
+    fr = ET_LoadFrame(v_in, fc);
     
     if isempty(fr)
         % may happen in the progressive case
         break
     end
     
-    % Increment frame counter
-    fc = fc + 1;
     
     % Refine pupil parameter estimates
     p_new = ET_RefinePupil(fr, p_run, options);
@@ -187,66 +185,68 @@ while keep_going
     end
     
     % Save pupil in array
+
+    
     pupils(fc) = p_new;
     
     % New pupil becomes running pupil
     p_run = p_new;
     
-end % Frame interleaf loop
-
-% Update progress every 10 progressive frames
-
-if mod(fc,10) == 0
     
-    % Overlay pupil, glint and ROI onto frame image
-    pupil_overlay = ET_OverlayPupil(fr, p_run);
-    imshow(pupil_overlay, 'parent', handles.Eye_Video_Axes);
+    % Update progress every 10 progressive frames
     
-    % Show calibrated gaze position in GUI if calibration model exists
-    if ~isempty(C)
-        ET_PlotGaze(p_run, handles.Gaze_Axes, 'plot');
+    if mod(fc,10) == 0
+        
+        % Overlay pupil, glint and ROI onto frame image
+        pupil_overlay = ET_OverlayPupil(fr, p_run);
+        imshow(pupil_overlay, [0,255], 'parent', handles.Eye_Video_Axes);
+        
+        % Show calibrated gaze position in GUI if calibration model exists
+        if ~isempty(C)
+            ET_PlotGaze(p_run, handles.Gaze_Axes, 'plot');
+        end
+        
+        drawnow;
+        
+        % Write frame to output video file
+        %%% edit JD 9/26/13
+        if ~ismac
+            writeVideo(v_out,pupil_overlay);
+        else
+            v_out.addFrame(pupil_overlay);
+        end
+        %%%
+        % Update progress bar
+        if ~isempty(handles.Progress_Bar)
+            set(handles.Progress_Bar,'Value', fc/n_frames);
+        end
+        
+        % Show current threshold in GUI
+        set(handles.Pupil_Threshold,'String',sprintf('%0.3f', p_run.thresh));
+        
+        % Set threshold to NaN to refresh pupil threshold on next frame
+        p_run.thresh = NaN;
+        
     end
     
-    drawnow;
-    
-    % Write frame to output video file
-    %%% edit JD 9/26/13
-    if ~ismac
-        writeVideo(v_out,pupil_overlay);
-    else
-        v_out.addFrame(pupil_overlay);
-    end
-    %%%
-    % Update progress bar
-    if ~isempty(handles.Progress_Bar)
-        set(handles.Progress_Bar,'Value', pc/n_frames);
+    % Check for stop button press
+    handles = guidata(handles.Main_Figure);
+    if handles.stop_pressed
+        
+        % Reset stop button flag and exit loop
+        fprintf('ET : Stop detected in video pupilometry - exiting\n');
+        handles.stop_pressed = false;
+        break
+        
     end
     
-    % Show current threshold in GUI
-    set(handles.Pupil_Threshold,'String',sprintf('%0.3f', p_run.thresh));
-    
-    % Set threshold to NaN to refresh pupil threshold on next frame
-    p_run.thresh = NaN;
-    
-end
-
-% Check for stop button press
-handles = guidata(handles.Main_Figure);
-if handles.stop_pressed
-    
-    % Reset stop button flag and exit loop
-    fprintf('ET : Stop detected in video pupilometry - exiting\n');
-    handles.stop_pressed = false;
-    break
-    
-end
-
-switch video_mode
-    case 'interlaced'
-        pc = pc + 1;
-    case 'progressive'
-        pc = pc + 2;
-end
+    video_mode = 'interlaced';
+    switch video_mode
+        case 'interlaced'
+            fc = fc + 1;
+        case 'progressive'
+            fc = fc + 2;
+    end
 end % Movie loop
 
 % Stop timer
@@ -275,3 +275,4 @@ clear v_in
 clear v_out
 
 fprintf('Done\n');
+end

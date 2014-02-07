@@ -1,4 +1,4 @@
-function [bw_glint, fr_noglints] = ET_FindRemoveGlints(fr, DEBUG)
+function [bw_glint, fr_noglints] = ET_FindRemoveGlints(fr, options)
 % Find and remove glints in frame
 %
 % AUTHOR : Mike Tyszka, Ph.D.
@@ -24,7 +24,7 @@ function [bw_glint, fr_noglints] = ET_FindRemoveGlints(fr, DEBUG)
 % Copyright 2013 California Institute of Technology.
 
 % Defaults
-if nargin < 2; DEBUG = false; end
+if nargin < 2; options.debug = false; end
 
 % Hard fraction intensity threshold
 % Bright regions other than glints can cause problems for percentile
@@ -41,7 +41,7 @@ fr_noglints = roifill(fr, glint_mask);
 % Shrink glint regions
 bw_glint = bwmorph(bw,'erode');
 
-if DEBUG
+if options.debug
   
   figure(30);
   

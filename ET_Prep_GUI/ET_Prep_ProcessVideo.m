@@ -35,67 +35,66 @@ try
     switch computer
         
         case 'MACI64'
-            % v_in = VideoPlayer(v_infile);
-            % fps_i = 29.97;
-            v_in = vision.VideoFileReader(v_infile);
-            fps_i = v_in.FrameRate;
+            v_in = VideoPlayer(v_infile);
     
         case {'PCWIN','PCWIN64'}
             v_in = VideoReader(v_infile);
-            fps_i = v_in.FrameRate;
             
         case 'GLNXA64'
             v_in = VideoReader(v_infile);
-            fps_i = v_in.FrameRate;
             
         otherwise            
             
     end
     
-catch VIDEO_IN
+catch
     fprintf('ET_Prep : Problem opening calibration video to read\n');
-    rethrow(VIDEO_IN)
+    return
 end
 
 % Remove any extension from video outfile
 [v_outpath, v_outstub, ~] = fileparts(v_outfile);
 v_outfile = fullfile(v_outpath, v_outstub);
 
-% Get ROI size from GUI
+% Get ROI size
 ROI_w = fix(str2double(get(handles.ROI_size,'String')));
-
-% Output is deinterlaced at twice the frame rate of the original
-fps_p = 2 * fps_i;
 
 try
     switch computer
         
         case 'MACI64'
-            % v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w], 'Fps', fps_p);
-            v_out = VideoWriter([v_outfile '.mp4'], 'Profile', 'MPEG-4', 'FrameRate', fps_p);
+            v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w], 'Fps', fps_p);
+            
+            % Get input frame count
+            n_frames = v_in.NumFrames;
             
         case {'PCWIN','PCWIN64'}
-            v_out = VideoWriter([v_outfile '.mp4'], 'Profile', 'MPEG-4', 'FrameRate', fps_p);
+            v_out = VideoWriter(v_outfile, 'FrameRate', fps_p);
+            % Get input frame count
+            n_frames = v_in.NumFrames;
             
         case {'GLNXA64'}
-            v_out = VideoWriter([v_outfile '.mp4'], 'Profile', 'MPEG-4', 'FrameRate', fps_p);
+            v_out = VideoWriter(v_outfile);
+            v_out.FrameRate = v_in.FrameRate;
+            v_out.Quality = 100;
+            v_out.open();
             
+            % Get input frame count
+            n_frames = v_in.NumberOfFrames;
         otherwise
             
     end
            
-catch VIDEO_OUT
+catch
     fprintf('ET_Prep : Problem opening calibration video to write\n');
-    rethrow(VIDEO_OUT)
+    return
 end
 
-% Get input frame count
-n_frames = v_in.NumFrames;
 
 % Start timer
 t0 = tic;
 
-for fc = 1:n_frames
+for fc = 1:n_frames-1
     
     % Update
     if fc > 1
@@ -103,7 +102,7 @@ for fc = 1:n_frames
     end
     
     % Load frame pair from interlaced video stream
-    in_fr_pair = ET_Prep_LoadFramePair(v_in);
+    [in_fr_pair, handles] = ET_Prep_LoadFramePair(v_in, handles);
 
     % Remove MR artifact if requested
     if do_mrclean && fc > 1
@@ -119,16 +118,31 @@ for fc = 1:n_frames
     out_fr_odd = repmat(out_fr_pair(:,:,1),[1 1 3]);
     out_fr_even = repmat(out_fr_pair(:,:,2),[1 1 3]);
     
+    
     % Write frame pair to file
-    v_out.addFrame(out_fr_odd);
-    v_out.addFrame(out_fr_even);
+    switch computer
+        
+        case 'MACI64'
+            v_out.addFrame(out_fr_odd);
+            v_out.addFrame(out_fr_even);
+            
+        case {'PCWIN','PCWIN64'}
+            v_out.addFrame(out_fr_odd);
+            v_out.addFrame(out_fr_even);
+            
+        case 'GLNXA64'
+            v_out.writeVideo(out_fr_odd/255);
+            v_out.writeVideo(out_fr_even/255);
+        otherwise
+            
+    end
     
     % Update GUI every 30 frames
     if mod(fc,30) == 1
        
         % Update raw input and output frames in GUI
-        imshow(in_fr_pair(:,:,1), 'Parent', handles.Input_Frame);
-        imshow(out_fr_pair(:,:,1), 'Parent', handles.Output_Frame);
+        imshow(in_fr_pair(:,:,1), [0,255], 'Parent', handles.Input_Frame);
+        imshow(out_fr_pair(:,:,1), [0,255], 'Parent', handles.Output_Frame);
         
         % Update frame progress fields in GUI
         set(handles.Processing_FPS,'String',sprintf('%0.1f', fc / toc(t0)));
@@ -140,6 +154,10 @@ for fc = 1:n_frames
         
     end
     
+end
+
+if strcmp(computer,'GLNXA64')
+    v_out.close()
 end
 
 % Clean up

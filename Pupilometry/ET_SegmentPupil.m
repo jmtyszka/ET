@@ -104,7 +104,7 @@ bw_raw = s < th_new;
 % Binary morph open
 bw = imopen(bw_raw, options.pupil_se);
 
-if DEBUG
+if options.debug
   
   figure(30); colormap(gray)
   

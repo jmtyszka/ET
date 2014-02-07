@@ -522,7 +522,7 @@ thresh_mode = thresh_modes{get(handles.Pupil_Thresh_Popup, 'Value')};
 fprintf('ET : Pupil threshold method set to %s\n', thresh_mode);
 
 % Update ROI image in GUI using new threshold
-handles = ET_UpdateROIImage(handles);
+handles = ET_UpdatePosterFrame(handles);
 
 % Resave handles
 guidata(hObject,handles)
@@ -551,7 +551,7 @@ function Pupil_Threshold_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of Pupil_Threshold as a double
 
 % Update ROI image in GUI using new manual threshold
-handles = ET_UpdateROIImage(handles);
+handles = ET_UpdatePosterFrame(handles);
 
 % Resave handles
 guidata(hObject,handles)

@@ -35,6 +35,7 @@ if isfield(handles,'video_poster_frame')
 else
     fprintf('ET_GetRefinePupilOptions : no poster frame yet - exiting\n');
     options = [];
+    return
 end
 
 % Structured elemetns for pupil and glint preprocessing

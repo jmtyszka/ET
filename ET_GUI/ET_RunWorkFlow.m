@@ -257,7 +257,7 @@ if do_gaze_pupils
     handles = ET_InitVideo(video_infile, handles);
     
     % Only check MR clean flag for gaze movie analysis
-    do_mrclean    = get(handles.MRClean_Popup,'Value') == 2;
+    do_mrclean    = false; %get(handles.MRClean_Popup,'Value') == 2;
     
     
     if get(handles.do_pupilometry_only,'Value')==0,
@@ -269,11 +269,9 @@ if do_gaze_pupils
     gaze_pupils = ET_Video_Pupilometry(...
         video_infile,...
         video_outfile, ...
-        handles.gaze_pupils_file, ...
-        handles.roi, ...
+        handles.cal_pupils_file, ...
         handles.p_run, ...
         handles.calibration.C, ...
-        do_mrclean, ...
         handles);
     % Save gaze pupils in GUI
     handles.gaze_pupils = gaze_pupils;
@@ -303,7 +301,11 @@ if get(handles.do_pupilometry_only,'Value')==0,
         if isfield(pupils,'gaze_filt_x')
             pupils=rmfield(pupils,{'gaze_filt_x'});%,'gaze_filt_y','gaze_filt_a0'});
         end
-        save(handles.gaze_pupils_file,'pupils','-append');
+        if exist(handles.gaze_pupils_file, 'file') == 2
+            save(handles.gaze_pupils_file,'pupils','-append');
+        else
+            save(handles.gaze_pupils_file,'pupils');
+        end
         handles.gaze_pupils=pupils;
     end
     
@@ -355,7 +357,11 @@ if get(handles.do_pupilometry_only,'Value')==0,
             pupils(ifr).gaze_filt_y=gaze_filt.y(ifr);
             pupils(ifr).gaze_filt_a0=gaze_filt.a0(ifr);
         end
-        save(handles.gaze_pupils_file,'pupils','-append');
+        if exist(handles.gaze_pupils_file, 'file') == 2
+            save(handles.gaze_pupils_file,'pupils','-append');
+        else
+            save(handles.gaze_pupils_file,'pupils');
+        end
         handles.gaze_pupils=pupils;
     else
         fprintf('ET : Spike/drift correction already applied\n');

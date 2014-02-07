@@ -115,6 +115,9 @@ handles.input_gaze_vfile  = fullfile(dir_name, input_gaze_vfile);
 handles.output_cal_vfile  = fullfile(dir_name, output_cal_vfile);
 handles.output_gaze_vfile = fullfile(dir_name, output_gaze_vfile);
 
+% misc
+handles.currentFrame = 1;
+
 % Platform-dependent video IO
 
 switch computer
@@ -139,14 +142,14 @@ switch computer
         
         % Use vision toolbox video IO for now (R2013b)
         try
-            v_in = VideoReader(handles.input_ca_vfile);
+            v_in = VideoReader(handles.input_cal_vfile);
         catch READ_CAL_VIDEO
             fprintf('ET_Prep : Problem opening calibration video to read\n');
             rethrow(READ_CAL_VIDEO);
         end
         
         % Load first frame pair
-        poster_frame_pair = ET_Prep_LoadFramePair(v_in);
+        [poster_frame_pair, handles] = ET_Prep_LoadFramePair(v_in,handles);
         
         % Close video stream
         clear v_in;
@@ -154,7 +157,7 @@ switch computer
 end
 
 % Show odd frame in input axes
-imshow(poster_frame_pair(:,:,1), 'parent', handles.Input_Frame);
+imshow(poster_frame_pair(:,:,1), [0,255], 'parent', handles.Input_Frame);
 
 % Save first frame pair for ROI updating in GUI
 handles.poster_frame_pair = poster_frame_pair;

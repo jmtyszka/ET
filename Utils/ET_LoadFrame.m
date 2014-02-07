@@ -42,8 +42,8 @@ switch computer
         % Windows/Linux video IO
         
         try
-            fr = (read(v_in, currentFrame));
-            fr = fr / 255;
+            fr = double(read(v_in, currentFrame));
+            fr = fr/255;
         catch
             fprintf('ET_LoadFrame : problem reading video frame\n');
             return

@@ -123,4 +123,5 @@ end
 handles = ET_InitVideo(handles.cal_video_path, handles);
 
 % Init gaze plot axes
+
 ET_PlotGaze([], handles.Gaze_Axes, 'init');

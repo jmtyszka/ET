@@ -34,11 +34,11 @@ end
 options = ET_GetRefinePupilOptions(handles);
 
 % Refine pupil parameter estimates
-handles.p_run = ET_RefinePupil(fr, NaN, options.debug);
+handles.p_run = ET_RefinePupil(fr, ET_NewPupil, options);
  
 % Display ROI image with pupilometry overlay
 fr_over = ET_OverlayPupil(fr, handles.p_run);
-imshow(fr_over, 'parent', handles.Eye_Video_Axes);
+imshow(fr_over, [0,255], 'parent', handles.Eye_Video_Axes);
 
 % Save refine pupil options in handles structure
 handles.refine_options = options;
