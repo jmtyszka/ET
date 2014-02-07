@@ -35,49 +35,58 @@ try
     switch computer
         
         case 'MACI64'
-            v_in = VideoPlayer(v_infile);
+            % v_in = VideoPlayer(v_infile);
+            % fps_i = 29.97;
+            v_in = vision.VideoFileReader(v_infile);
+            fps_i = v_in.FrameRate;
     
         case {'PCWIN','PCWIN64'}
             v_in = VideoReader(v_infile);
+            fps_i = v_in.FrameRate;
             
         case 'GLNXA64'
             v_in = VideoReader(v_infile);
+            fps_i = v_in.FrameRate;
             
         otherwise            
             
     end
     
-catch
+catch VIDEO_IN
     fprintf('ET_Prep : Problem opening calibration video to read\n');
-    return
+    rethrow(VIDEO_IN)
 end
 
 % Remove any extension from video outfile
 [v_outpath, v_outstub, ~] = fileparts(v_outfile);
 v_outfile = fullfile(v_outpath, v_outstub);
 
-% Get ROI size
+% Get ROI size from GUI
 ROI_w = fix(str2double(get(handles.ROI_size,'String')));
+
+% Output is deinterlaced at twice the frame rate of the original
+fps_p = 2 * fps_i;
 
 try
     switch computer
         
         case 'MACI64'
-            v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w], 'Fps', fps_p);
+            % v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w], 'Fps', fps_p);
+            v_out = VideoWriter([v_outfile '.mp4'], 'Profile', 'MPEG-4', 'FrameRate', fps_p);
             
         case {'PCWIN','PCWIN64'}
-            v_out = VideoWriter(v_outfile, 'FrameRate', fps_p);
+            v_out = VideoWriter([v_outfile '.mp4'], 'Profile', 'MPEG-4', 'FrameRate', fps_p);
             
         case {'GLNXA64'}
-            v_out = VideoWriter(v_outfile, 'FrameRate', fps_p);
+            v_out = VideoWriter([v_outfile '.mp4'], 'Profile', 'MPEG-4', 'FrameRate', fps_p);
             
         otherwise
             
     end
            
-catch
+catch VIDEO_OUT
     fprintf('ET_Prep : Problem opening calibration video to write\n');
-    return
+    rethrow(VIDEO_OUT)
 end
 
 % Get input frame count
