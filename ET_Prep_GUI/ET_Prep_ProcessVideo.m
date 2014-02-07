@@ -35,21 +35,38 @@ try
     switch computer
         
         case 'MACI64'
+            
+            % Open MPEG-2 video stream using VideoUtils library
             v_in = VideoPlayer(v_infile);
-    
-        case {'PCWIN','PCWIN64'}
-            v_in = VideoReader(v_infile);
+                        
+            % Hardwire NTSC fps (VideoUtils doesn't read this)
+            fps_i = 29.97;
+            fprintf('ET_Prep_ProcessVideo : forcing NTSC frame rate to %0.2f\n', fps_i);
+
+            % Get total interlaced frame count
+            n_frames = v_in.NumFrames;
             
-        case 'GLNXA64'
-            v_in = VideoReader(v_infile);
+        case {'PCWIN','PCWIN64','GLNXA64'}
             
-        otherwise            
+            % Open video stream
+            v_in = VideoReader(v_infile);
+
+            % Get input video parameters
+            fps_i = v_in.FrameRate;
+            n_frames = v_in.NumberOfFrames;
+            
+        otherwise
+            
+            fprintf('ET_Prep_ProcessVideo : Unknown architecture (%s)\n', computer);
+            return
             
     end
     
-catch
-    fprintf('ET_Prep : Problem opening calibration video to read\n');
+catch VIDEO_READ_ERROR
+    
+    fprintf('ET_Prep : *** Reading %s : %s\n', v_infile, VIDEO_READ_ERROR.identifier);
     return
+    
 end
 
 % Remove any extension from video outfile
@@ -59,35 +76,41 @@ v_outfile = fullfile(v_outpath, v_outstub);
 % Get ROI size
 ROI_w = fix(str2double(get(handles.ROI_size,'String')));
 
+% Output deinterlaced progressive framerate (double interlaced fps)
+fps_p = 2.0 * fps_i;
+
 try
     switch computer
         
         case 'MACI64'
-            v_out = VideoRecorder(v_outfile, 'Format', 'mp4', 'Size', [ROI_w ROI_w], 'Fps', fps_p);
             
-            % Get input frame count
-            n_frames = v_in.NumFrames;
+            % VideoUtils doesn't support float fps, so round for output
+            % Actual fps_p is saved in ET_Prep_Info.mat file for use by ET
+            fprintf('ET_Prep_ProcessVideo : rounding frame rate to %0.2f\n', round(fps_p));
+            v_out = VideoRecorder(v_outfile, ...
+                'Format', 'mp4', ...
+                'Size', [ROI_w ROI_w], ...
+                'Fps', round(fps_p));
             
-        case {'PCWIN','PCWIN64'}
-            v_out = VideoWriter(v_outfile, 'FrameRate', fps_p);
-            % Get input frame count
-            n_frames = v_in.NumFrames;
+        case {'PCWIN','PCWIN64','GLNXA64'}
             
-        case {'GLNXA64'}
+            % Open video stream
             v_out = VideoWriter(v_outfile);
-            v_out.FrameRate = v_in.FrameRate;
+            
+            % Set output video parameters
+            v_out.FrameRate = fps_p;
             v_out.Quality = 100;
             v_out.open();
             
-            % Get input frame count
-            n_frames = v_in.NumberOfFrames;
         otherwise
             
     end
            
-catch
-    fprintf('ET_Prep : Problem opening calibration video to write\n');
+catch VIDEO_WRITE_ERROR
+    
+    fprintf('ET_Prep : *** Writing %s : %s\n', v_outfile, VIDEO_WRITE_ERROR.identifier);
     return
+    
 end
 
 
@@ -156,10 +179,44 @@ for fc = 1:n_frames-1
     
 end
 
-if strcmp(computer,'GLNXA64')
-    v_out.close()
+%% Save ET_Prep information file for use by ET
+
+% Fill info structure
+info.timestamp = datestr(now());
+info.v_infile = v_infile;
+info.v_outfile = v_outfile;
+info.fps_i = fps_i;
+info.fps_p = fps_p;
+
+% Get ROI info from GUI
+info.roi_x = str2double(get(handles.Pupil_X, 'String'));
+info.roi_y = str2double(get(handles.Pupil_Y, 'String'));
+info.roi_w = str2double(get(handles.ROI_size, 'String'));
+
+% ROI rotation
+rot_val = get(handles.Rotate_ROI_Popup,'Value');
+rot_vals = get(handles.Rotate_ROI_Popup,'String');
+info.roi_rot = str2double(rot_vals{rot_val});
+
+% Write video and ROI information to .mat file
+fprintf('ET_Prep_ProcessVideo : writing preparation info\n');
+[v_path, v_stub, ~] = fileparts(v_infile);
+info_file = fullfile(v_path, [v_stub '_Prep.mat']);
+save(info_file,'info');
+
+%% Clean up
+switch computer
+    
+    case {'PCWIN','PCWIN64','GLNXA64'}
+        v_in.close()
+        v_out.close()
+        
+    case 'MACI64'
+        clear v_in v_out
+        
+    otherwise        
+       fprint('ET_Prep_ProcessVideo : Unknown architecture (%s)\n', computer);
+
 end
 
-% Clean up
-clear v_in v_out
 
