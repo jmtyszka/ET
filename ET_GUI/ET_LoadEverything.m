@@ -4,6 +4,7 @@ function handles = ET_LoadEverything(handles)
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 12/18/2012 JMT Extract from ET.m
+%          02/07/2014 JMT Only .mp4 allowed (assumes prepared videos)
 %
 % This file is part of ET.
 %
@@ -24,7 +25,8 @@ function handles = ET_LoadEverything(handles)
 
 % Open a file browser
 % edit JD 9/27/13 added .mp4
-[fname, dir_name] = uigetfile({'*.mov;*.avi;*.mpg;*.mp4','Supported video formats'},...
+% 
+[fname, dir_name] = uigetfile({'*.mp4','MPEG-4/H264 Videos'},...
     'Select calibration video file');
 if isequal(fname,0) || isequal(dir_name,0)
     return
@@ -41,9 +43,7 @@ handles.Study_Name = Study_Name;
 % Fill GUI file and path fields
 set(handles.CWD,       'String', dir_name);
 set(handles.Cal_Video_File, 'String', [Study_Name '_Cal' Video_Ext]);
-set(handles.Val_Video_File, 'String', [Study_Name '_Val' Video_Ext]);
 set(handles.Gaze_Video_File, 'String', [Study_Name '_Gaze' Video_Ext]);
-
 
 % Check whether videos and analysis files exist for this selection
 % This function also fills handles fields with data file names
@@ -82,30 +82,6 @@ if get(handles.Cal_Model_Checkbox,'Value')
     
 end
 
-
-% Check for validation pupilometry.
-
-if get(handles.Val_Pupils_Checkbox,'Value')
-    
-    try
-        fprintf('ET : Loading validation pupilometry\n');
-        in = load(handles.val_pupils_file);
-        handles.val_pupils = in.pupils;
-    catch VAL_PUPILS_LOAD
-        fprintf('ET : *** Problem loading validation pupilometry data\n');
-    end
-    
-end
-
-if get(handles.Val_Model_Checkbox,'Value')
-    
-    % Load validation model
-    fprintf('ET : Loading validation model\n');
-    in = load(handles.validation_file, 'validation');
-    handles.validation = in.validation;
-    
-end
-
 if get(handles.Gaze_Pupils_Checkbox,'Value')
     
     % Load gaze pupilometry
@@ -123,5 +99,4 @@ end
 handles = ET_InitVideo(handles.cal_video_path, handles);
 
 % Init gaze plot axes
-
 ET_PlotGaze([], handles.Gaze_Axes, 'init');

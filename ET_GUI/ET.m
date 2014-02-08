@@ -39,7 +39,7 @@ function varargout = ET(varargin)
 %
 % Edit the above text to modify the response to help ET
 
-% Last Modified by GUIDE v2.5 05-Oct-2013 22:43:21
+% Last Modified by GUIDE v2.5 07-Feb-2014 16:55:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -613,9 +613,6 @@ function Debug_Toggle_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of Debug_Toggle
 
 
-
-
-
 % --- Executes on button press in Quit_Button.
 function Quit_Button_Callback(hObject, eventdata, handles)
 % hObject    handle to Quit_Button (see GCBO)
@@ -624,6 +621,7 @@ function Quit_Button_Callback(hObject, eventdata, handles)
 
 fprintf('ET : Exiting normally\n');
 close(handles.Main_Figure);
+
 
 function fps_Callback(hObject, eventdata, handles)
 % hObject    handle to fps (see GCBO)
@@ -677,3 +675,26 @@ function do_pupilometry_only_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of do_pupilometry_only
+
+
+
+function FPS_Callback(hObject, eventdata, handles)
+% hObject    handle to FPS (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of FPS as text
+%        str2double(get(hObject,'String')) returns contents of FPS as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function FPS_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to FPS (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

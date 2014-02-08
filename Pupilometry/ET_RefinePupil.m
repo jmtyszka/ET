@@ -15,34 +15,26 @@ function p_new = ET_RefinePupil(fr, p_old, options)
 %          02/08/2013 JMT Change to refinement of pupil
 %
 % This file is part of ET.
-% 
+%
 %     ET is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
 %     the Free Software Foundation, either version 3 of the License, or
 %     (at your option) any later version.
-% 
+%
 %     ET is distributed in the hope that it will be useful,
 %     but WITHOUT ANY WARRANTY; without even the implied warranty of
 %     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %     GNU General Public License for more details.
-% 
+%
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
 % Copyright 2011-2013 California Institute of Technology
 
-% Default arguments
+% Require all arguments
 if nargin < 3
-  p_new = p_old;
-  return
-end
-
-% Create default options structure if absent
-if nargin < 3
-  options.pupil_se = strel('disk',fix(size(fr,2) * 0.05));
-  options.thresh_mode = 'histogram';
-  options.manual_thresh = 0.15;
-  options.debug = false;
+    p_new = p_old;
+    return
 end
 
 % Robust range adjustment [1,99] percentile

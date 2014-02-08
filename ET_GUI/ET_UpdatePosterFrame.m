@@ -33,8 +33,12 @@ end
 % Setup refine options
 options = ET_GetRefinePupilOptions(handles);
 
+% Setup an initial pupil estimate (center of frame)
+p_init = ET_NewPupil;
+p_init.px = size(
+
 % Refine pupil parameter estimates
-handles.p_run = ET_RefinePupil(fr, ET_NewPupil, options);
+handles.p_run = ET_RefinePupil(fr, p_init, options);
  
 % Display ROI image with pupilometry overlay
 fr_over = ET_OverlayPupil(fr, handles.p_run);

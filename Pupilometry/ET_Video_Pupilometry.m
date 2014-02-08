@@ -62,15 +62,22 @@ try
     
     switch computer
         
-        case {'PCWIN','PCWIN4'}
+        case {'PCWIN','PCWIN4','GLNXA64'}
             v_in = VideoReader(video_infile);
-            
-        case {'GLNXA64'}
-            v_in = VideoReader(video_infile);
+            n_frames = v_in.NumberOfFrames;
+            fps = v_in.FrameRate;
             
         case {'MACI64'}
             v_in = VideoPlayer(video_infile, 'Verbose', false, 'ShowTime', false);
+            n_frames = v_in.NumFrames;
             
+            % VideoUtils does not support non-integer fps
+            % Get true fps from conversion info file
+            [v_path, v_stub, ~] = fileparts(video_infile);
+            info_file = fullfile(v_path, [v_stub '_Prep.mat']);
+            load(info_file);
+            fps = info.fps_p;
+
         otherwise
             fprintf('ET_Video_Pupilometry : *** Unknown platform (%s)\n', computer);
             return
@@ -85,43 +92,25 @@ catch VIDEO_IN_OPEN
 end
 
 % Create output video object
-% Use video_infile to generate a file stub
 try
-    if ~ismac
-        v_out = VideoWriter(video_outfile);
-        open(v_out);
-    else
-        v_out = VideoRecorder(video_outfile, 'Format', 'mov', 'Size', [256 256]);
-    end
+   
+    switch computer
+       
+       case {'PCWIN','PCWIN64','GLNXA64'}
+           v_out = VideoWriter(video_outfile);
+           open(v_out);
+       
+       case 'MACI64'
+           v_out = VideoRecorder(video_outfile, 'Format', 'mp4', 'Size', [256 256]);
+
+   end
     
 catch VIDEO_OUT_OPEN
     
-    fprintf('*** Problem opening output video file\n');
+    fprintf('ET_Video_Pupilometry : *** Opening output video %s : %s\n', ...
+        video_outfile, VIDEO_OUT_OPEN.identifier);
     rethrow(VIDEO_OUT_OPEN);
     
-end
-
-% Get input video info
-% Calculate frame count, FPS and frame time after interleaved to
-% progressive conversion
-switch computer
-    
-    case {'PCWIN','PCWIN64'}
-        n_frames = v_in.NumberOfFrames;
-        fps = v_in.FrameRate;
-        
-    case {'GLNXA64'}
-        n_frames = v_in.NumberOfFrames;
-        fps = v_in.FrameRate;
-        
-    case 'MACI64'
-        n_frames  = v_in.NumFrames;
-        fps = v_in.FramesPerSecond;
-        
-    otherwise
-        fprintf('ET_Video_Pupilometry : *** Unknown platform (%s)\n', computer);
-        return
-        
 end
 
 % Setup refine pupil options from GUI
@@ -172,7 +161,6 @@ while keep_going
         break
     end
     
-    
     % Refine pupil parameter estimates
     p_new = ET_RefinePupil(fr, p_run, options);
     
@@ -185,16 +173,12 @@ while keep_going
     end
     
     % Save pupil in array
-
-    
     pupils(fc) = p_new;
     
     % New pupil becomes running pupil
     p_run = p_new;
     
-    
     % Update progress every 10 progressive frames
-    
     if mod(fc,10) == 0
         
         % Overlay pupil, glint and ROI onto frame image
