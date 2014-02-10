@@ -9,7 +9,8 @@ function fixations = ET_PickFixationsOrder(fixations,handles)
 %
 % AUTHOR : Julien Dubois, Ph.D.
 % PLACE  : Caltech
-% DATES  : 09/27/2013 JD from scratch
+% DATES  : 09/27/2013  JD from scratch
+%          02/09/2014 JMT Generalize code for Mac, Ubuntu
 %
 % This file is part of ET.
 % 
@@ -26,19 +27,14 @@ function fixations = ET_PickFixationsOrder(fixations,handles)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2013 California Institute of Technology.
+% Copyright 2014 California Institute of Technology.
 
-dbstop if error
-
-% % no need for a manual edit if the number of fixations is 4 or 9
-% if n_fix == 4 || n_fix==9
-%     return
-% end
-
-% Smoothed heatmap in GUI calibration axes
-axes(handles.Calibration_Axes);cla;
-imagesc(fixations.xv, fixations.yv, fixations.hmap);%, 'parent',handle)
-axis equal ij;axis manual;hold on
+% Paint smoothed heatmap in GUI calibration axes
+axes(handles.Calibration_Axes)
+cla
+imagesc(fixations.xv, fixations.yv, fixations.hmap);
+axis equal ij manual off
+hold on
 
 % Overlay possible fixations (peaks of heatmap)
 for ifix = 1:length(fixations.x)
@@ -51,33 +47,50 @@ y0 = [0.9 0.9 0.9 0.5 0.5 0.5 0.1 0.1 0.1];
 
 orderedfixations.x = nan(1,length(x0));
 orderedfixations.y = nan(1,length(x0));
+
 % use ginput to select good fixations
-for iCal=1:length(x0),
+for iCal = 1:length(x0),
+    
     % Circle the fixation to be defined
-    axes(handles.Gaze_Axes);axis([0 1 0 1]);axis manual;hold on;
+    axes(handles.Gaze_Axes)
+    axis([0 1 0 1])
+    axis manual off
+    hold on
+    
     plot(x0(iCal),y0(iCal),'o','MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',12);
     
     % (left) click on corresponding fixation
     axes(handles.Calibration_Axes);
-    indkeep=[];
-    button=1;
+    indkeep = [];
+    button = 1;
+    
     while ~isempty(button) 
+    
         % button becomes empty when the return key is pressed
-        [x,y,button]=ginput(1);
-        if button==1 % left click
+        [x,y,button] = ginput(1);
+        
+        if button == 1 % left click
+        
             % find the closest fixation to the clicked point
-            d=sqrt((x-fixations.x).^2+(y-fixations.y).^2);
-            [~,whichfix]=min(d);
+            d = sqrt((x-fixations.x).^2+(y-fixations.y).^2);
+            [~,whichfix] = min(d);
+            
             if ~ismember(whichfix,indkeep)
+            
                 % plot it in blue to mark it as accepted
                 plot(fixations.x(whichfix), fixations.y(whichfix), 'o', 'MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',8);
+                
                 % add it to the list of good fixations
                 indkeep=whichfix;
+            
             else
+                
                 % plot it in blue to mark it as accepted
                 plot(fixations.x(whichfix), fixations.y(whichfix), 'o', 'MarkerFaceColor','b','MarkerEdgeColor','k','MarkerSize',8);
+                
                 % remove from list of good fixations
                 indkeep=indkeep(indkeep~=whichfix);
+            
             end
         end
     end
@@ -100,9 +113,7 @@ for iCal=1:length(x0)
 end
 
 orderedfixations.hmap = fixations.hmap;
-orderedfixations.xv = fixations.xv;
-orderedfixations.yv = fixations.yv;
+orderedfixations.xv   = fixations.xv;
+orderedfixations.yv   = fixations.yv;
 
 fixations = orderedfixations;
-
-

@@ -59,6 +59,9 @@ switch computer
             % Read single progressive frame
             fr = v_in.Frame;
             
+            % Increment stream counter
+            v_in = v_in + 1;
+            
         catch
             
             fprintf('ET_LoadFrame : problem reading video frame\n');

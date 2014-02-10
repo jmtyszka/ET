@@ -39,45 +39,49 @@ calibration.C = [];
 calibration.fixations = [];
 
 % Reinitialize Gaze Axes
-ET_PlotGaze([], handles.Gaze_Axes, 'init');
+ET_PlotGaze([], handles.Gaze_Axes, [], 'init');
 
 %% Calibration in video frame of reference
 
 % Raw fixations in video frame of reference
-if 0
-    fixations = ET_FindFixations_Heat(pupils);
-else
-    % JD 10/03/13 : combining fixations detected in spatial and time domains
-    % in case the heatmap doesn't suffice; since the points are picked
-    % manually, it is not a problem to have too many
-    fixationsH = ET_FindFixations_Heat(pupils);
-    fixationsT = ET_FindFixations_Time(pupils);
-    fixations.x = [fixationsH.x fixationsT.x];
-    fixations.y = [fixationsH.y fixationsT.y];
-    fixations.hmap = fixationsH.hmap;
-    fixations.xv = fixationsH.xv;
-    fixations.yv = fixationsH.yv;
-end
 
-if 0
-    % Manual fixation picking (not in order)
-    % just pick 9 fixations, they are sorted automatically
-    % if there are less than 9 fixations, the automatic sorting is
-    % problematic
-    fixations = ET_PickFixations(fixations, handles);
-    % Sort fixations
-    [fx, fy] = ET_SortFixations(fixations);
-else
-    % Manual fixation picking in order
-    % left click on the fixation that corresponds to the currently
-    % highlighted point in the gaze window; then press return
-    % if there is no detected fixation at that point, just press return and
-    % the point will be ignored (ok if we have 1 or 2 missing fixations)
-    fixations = ET_PickFixationsOrder(fixations, handles);
-    fx = fixations.x;
-    fy = fixations.y;
-    % this assumes that we have a 9-point calibration
-end
+% JMT older version
+% fixations = ET_FindFixations_Heat(pupils);
+
+% JD 10/03/13 : combining fixations detected in spatial and time domains
+% in case the heatmap doesn't suffice; since the points are picked
+% manually, it is not a problem to have too many
+fixationsH = ET_FindFixations_Heat(pupils);
+fixationsT = ET_FindFixations_Time(pupils);
+fixations.x = [fixationsH.x fixationsT.x];
+fixations.y = [fixationsH.y fixationsT.y];
+fixations.hmap = fixationsH.hmap;
+fixations.xv = fixationsH.xv;
+fixations.yv = fixationsH.yv;
+
+%%
+% Old version
+% Manual fixation picking (not in order)
+% just pick 9 fixations, they are sorted automatically
+% if there are less than 9 fixations, the automatic sorting is
+% problematic
+%
+% fixations = ET_PickFixations(fixations, handles);
+%
+% Sort fixations
+% [fx, fy] = ET_SortFixations(fixations);
+
+%%
+% Manual fixation picking in order
+% left click on the fixation that corresponds to the currently
+% highlighted point in the gaze window; then press return
+% if there is no detected fixation at that point, just press return and
+% the point will be ignored (ok if we have 1 or 2 missing fixations)
+% this assumes that we have a 9-point calibration
+
+fixations = ET_PickFixationsOrder(fixations, handles);
+fx = fixations.x;
+fy = fixations.y;
 
 % Biquadratic fit to calibration fixations
 C = ET_CalibrationFit(fx, fy);

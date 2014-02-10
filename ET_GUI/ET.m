@@ -21,17 +21,17 @@ function varargout = ET(varargin)
 % See also: GUIDE, GUIDATA, GUIHANDLES
 %
 % This file is part of ET.
-% 
+%
 %     ET is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
 %     the Free Software Foundation, either version 3 of the License, or
 %     (at your option) any later version.
-% 
+%
 %     ET is distributed in the hope that it will be useful,
 %     but WITHOUT ANY WARRANTY; without even the implied warranty of
 %     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %     GNU General Public License for more details.
-% 
+%
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
@@ -39,24 +39,24 @@ function varargout = ET(varargin)
 %
 % Edit the above text to modify the response to help ET
 
-% Last Modified by GUIDE v2.5 07-Feb-2014 16:55:02
+% Last Modified by GUIDE v2.5 09-Feb-2014 14:42:51
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-  'gui_Singleton',  gui_Singleton, ...
-  'gui_OpeningFcn', @ET_OpeningFcn, ...
-  'gui_OutputFcn',  @ET_OutputFcn, ...
-  'gui_LayoutFcn',  [] , ...
-  'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @ET_OpeningFcn, ...
+    'gui_OutputFcn',  @ET_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
-  gui_State.gui_Callback = str2func(varargin{1});
+    gui_State.gui_Callback = str2func(varargin{1});
 end
 
 if nargout
-  [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
 else
-  gui_mainfcn(gui_State, varargin{:});
+    gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
 
@@ -106,7 +106,7 @@ function Select_Cal_Video_Button_Callback(hObject, eventdata, handles)
 handles = ET_LoadEverything(handles);
 
 % Resave handles structure in GUI
-guidata(hObject, handles);
+guidata(handles.Main_Figure, handles);
 
 
 % --- Executes on button press in Go_Button.
@@ -116,22 +116,24 @@ function Go_Button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Call video preparation function with GUI parameters
+% Workflow run requires that a video has been selected
+% (check presence of p_run field)
 if isfield(handles,'p_run')
-  
-  % Run workflow
-  ET_RunWorkFlow(handles);
-  
-  % Update file checks
-  ET_CheckFiles(handles);
-  
-  % Save updates in GUI
-  guidata(hObject,handles);
-  
+    
+    % Run workflow
+    ET_RunWorkFlow(handles);
+    
+    % Update file checks
+    ET_CheckFiles(handles);
+    
+    % Save updates in GUI
+    guidata(handles.Main_Figure,handles);
+    
 else
-  
-  fprintf('ET : *** No initial pupil structure detected\n');
-  return
-  
+    
+    fprintf('ET : *** No initial pupil structure detected\n');
+    return
+    
 end
 
 
@@ -153,7 +155,7 @@ function PD_Min_CreateFcn(hObject, eventdata, handles)
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-  set(hObject,'BackgroundColor','white');
+    set(hObject,'BackgroundColor','white');
 end
 
 
@@ -211,41 +213,42 @@ function Gaze_Pupils_Checkbox_Callback(hObject, eventdata, handles)
 
 % Get state of Calibration Model checkbox
 if get(hObject,'Value') == 0
-  
-  % State just changed to zero
-
-  button = questdlg('Do you want to delete the gaze pupilometry?',...
-    'Confirm Delete','Yes','No','No');
-
-  if isfield(handles,'gaze_pupils_file')
     
-    switch lower(button)
-      case 'yes'
-        % Delete gaze pupilometry data in Gaze subdirectory and GUI
-        delete(fullfile(handles.gaze_dir,'Gaze*'));
-        delete(fullfile(handles.gaze_dir,'gaze*'));
-        handles.gaze_pupils = [];
-        fprintf('ET : Gaze pupilometry deleted\n');
-      otherwise
-        % Do nothing
+    % State just changed to zero
+    
+    button = questdlg('Do you want to delete the gaze pupilometry?',...
+        'Confirm Delete','Yes','No','No');
+    
+    if isfield(handles,'gaze_pupils_file')
+        
+        switch lower(button)
+            case 'yes'
+                % Delete gaze pupilometry data in Gaze subdirectory and GUI
+                delete(fullfile(handles.gaze_dir,'Gaze*'));
+                delete(fullfile(handles.gaze_dir,'gaze*'));
+                handles.gaze_pupils = [];
+                fprintf('ET : Gaze pupilometry deleted\n');
+            otherwise
+                % Do nothing
+        end
+        
+    else
+        
+        fprintf('ET : Gaze pupilometry file undefined in GUI\n');
+        
     end
     
-  else
+    % Refresh file checks
+    handles = ET_CheckFiles(handles);
     
-    fprintf('ET : Gaze pupilometry file undefined in GUI\n');
+    % Resave handles
+    guidata(hObject, handles);
     
-  end
-
-  % Refresh file checks
-  handles=ET_CheckFiles(handles);
-  % Resave handles
-  guidata(hObject, handles);
-  
 else
-  
-  % Checkbox just set - can't be done manually, so unset again
-  set(hObject,'Value', 0);
-  
+    
+    % Checkbox just set - can't be done manually, so unset again
+    set(hObject,'Value', 0);
+    
 end
 
 % --- Executes on button press in Cal_Pupils_Checkbox.
@@ -258,33 +261,34 @@ function Cal_Pupils_Checkbox_Callback(hObject, eventdata, handles)
 
 % Get state of Calibration Model checkbox
 if get(hObject,'Value') == 0
-  
-  % State just changed to zero
-
-  button = questdlg('Do you want to delete the calibration pupilometry?',...
-    'Confirm Delete','Yes','No','No');
-
-  switch lower(button)
-    case 'yes'
-      % Delete calibration pupilometry data and model in Gaze subdirectory and GUI
-      delete(fullfile(handles.gaze_dir,'Cal*'));
-      delete(fullfile(handles.gaze_dir,'cal*'));
-      handles.cal_pupils = [];
-      fprintf('ET : Calibration pupilometry deleted\n');
-    otherwise
-      % Do nothing
-  end
-
-   % Refresh file checks
-  handles=ET_CheckFiles(handles);
-  % Resave handles
-  guidata(hObject, handles);
-  
+    
+    % State just changed to zero
+    
+    button = questdlg('Do you want to delete the calibration pupilometry?',...
+        'Confirm Delete','Yes','No','No');
+    
+    switch lower(button)
+        case 'yes'
+            % Delete calibration pupilometry data and model in Gaze subdirectory and GUI
+            delete(fullfile(handles.gaze_dir,'Cal*'));
+            delete(fullfile(handles.gaze_dir,'cal*'));
+            handles.cal_pupils = [];
+            fprintf('ET : Calibration pupilometry deleted\n');
+        otherwise
+            % Do nothing
+    end
+    
+    % Refresh file checks
+    handles = ET_CheckFiles(handles);
+    
+    % Resave handles
+    guidata(hObject, handles);
+    
 else
-  
-  % Checkbox just set - can't be done manually, so unset again
-  set(hObject,'Value', 0);
-  
+    
+    % Checkbox just set - can't be done manually, so unset again
+    set(hObject,'Value', 0);
+    
 end
 
 
@@ -298,120 +302,41 @@ function Cal_Model_Checkbox_Callback(hObject, eventdata, handles)
 
 % Get state of Calibration Model checkbox
 if get(hObject,'Value') == 0
-  
-  % State just changed to zero
-
-  button = questdlg('Do you want to delete the calibration model?',...
-    'Confirm Delete','Yes','No','No');
-
-  calibration_file = handles.calibration_file;
-  
-  switch lower(button)
-    case 'yes'
-      if exist(calibration_file,'file')
-        delete(calibration_file);
-        fprintf('ET : Calibration model deleted\n');
-      end
-      if isfield(handles,'calibration')
-          handles=rmfield(handles,'calibration');
-      end
-      otherwise
-      % Do nothing
-  end
-
-   % Refresh file checks
-  handles=ET_CheckFiles(handles);
-  % Resave handles
-  guidata(hObject, handles);
-  
+    
+    % State just changed to zero
+    
+    button = questdlg('Do you want to delete the calibration model?',...
+        'Confirm Delete','Yes','No','No');
+    
+    calibration_file = handles.calibration_file;
+    
+    switch lower(button)
+        
+        case 'yes'
+            if exist(calibration_file,'file')
+                delete(calibration_file);
+                fprintf('ET : Calibration model deleted\n');
+            end
+            
+            if isfield(handles,'calibration')
+                handles = rmfield(handles,'calibration');
+            end
+        otherwise
+            % Do nothing
+    end
+    
+    % Refresh file checks
+    handles = ET_CheckFiles(handles);
+    
+    % Resave handles
+    guidata(hObject, handles);
+    
 else
-  
-  % Checkbox just set - can't be done manually, so unset again
-  set(hObject,'Value', 0);
-  
+    
+    % Checkbox just set - can't be done manually, so unset again
+    set(hObject,'Value', 0);
+    
 end
-
-% --- Executes on button press in Val_Pupils_Checkbox.
-function Val_Pupils_Checkbox_Callback(hObject, eventdata, handles)
-% hObject    handle to Cal_Pupils_Checkbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of Cal_Pupils_Checkbox
-
-% Get state of Calibration Model checkbox
-if get(hObject,'Value') == 0
-  
-  % State just changed to zero
-
-  button = questdlg('Do you want to delete the validation pupilometry?',...
-    'Confirm Delete','Yes','No','No');
-
-  switch lower(button)
-    case 'yes'
-      % Delete calibration pupilometry data and model in Gaze subdirectory and GUI
-      delete(fullfile(handles.gaze_dir,'Val*'));
-      delete(fullfile(handles.gaze_dir,'val*'));
-      handles.val_pupils = [];
-      fprintf('ET : Validation pupilometry deleted\n');
-    otherwise
-      % Do nothing
-  end
-
-   % Refresh file checks
-  handles=ET_CheckFiles(handles);
-  % Resave handles
-  guidata(hObject, handles);
-  
-else
-  
-  % Checkbox just set - can't be done manually, so unset again
-  set(hObject,'Value', 0);
-  
-end
-
-
-% --- Executes on button press in Cal_Model_Checkbox.
-function Val_Model_Checkbox_Callback(hObject, eventdata, handles)
-% hObject    handle to Cal_Model_Checkbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of Cal_Model_Checkbox
-
-% Get state of Validation Model checkbox
-if get(hObject,'Value') == 0
-  
-  % State just changed to zero
-
-  button = questdlg('Do you want to delete the validation model?',...
-    'Confirm Delete','Yes','No','No');
-
-  validation_file = handles.validation_file;
-  
-  switch lower(button)
-    case 'yes'
-      if exist(validation_file,'file')
-        delete(validation_file);
-        fprintf('ET : Validation model deleted\n');
-       handles=rmfield(handles,'validation');     
-     end
-    otherwise
-      % Do nothing
-  end
-
-   % Refresh file checks
-  handles=ET_CheckFiles(handles);
-  % Resave handles
-  guidata(hObject, handles);
-  
-else
-  
-  % Checkbox just set - can't be done manually, so unset again
-  set(hObject,'Value', 0);
-  
-end
-
 
 
 function Screen_Width_Callback(hObject, eventdata, handles)
@@ -511,10 +436,10 @@ function Pupil_Thresh_Popup_Callback(hObject, eventdata, handles)
 
 % Ungray manual threshold input if Hard (option 4) selected
 switch get(hObject,'Value')
-  case 4
-    set(handles.Pupil_Threshold,'Enable','on');
-  otherwise
-    set(handles.Pupil_Threshold,'Enable','off');
+    case 4
+        set(handles.Pupil_Threshold,'Enable','on');
+    otherwise
+        set(handles.Pupil_Threshold,'Enable','off');
 end
 
 thresh_modes = get(handles.Pupil_Thresh_Popup, 'String');
@@ -578,9 +503,9 @@ function Calibration_Axes_ButtonDownFcn(hObject, eventdata, handles)
 
 % Respond to mouse only during edit phase
 if handles.Edit_Phase
-  
-  fprintf('ET : Edit phase mouse button down');
-  
+    
+    fprintf('ET : Edit phase mouse button down');
+    
 end
 
 
@@ -690,6 +615,75 @@ function FPS_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function FPS_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to FPS (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Frame_Number_Callback(hObject, eventdata, handles)
+% hObject    handle to Frame_Number (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Frame_Number as text
+%        str2double(get(hObject,'String')) returns contents of Frame_Number as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Frame_Number_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Frame_Number (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Percent_Complete_Callback(hObject, eventdata, handles)
+% hObject    handle to Percent_Complete (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Percent_Complete as text
+%        str2double(get(hObject,'String')) returns contents of Percent_Complete as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Percent_Complete_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Percent_Complete (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Processing_Speed_Callback(hObject, eventdata, handles)
+% hObject    handle to Processing_Speed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Processing_Speed as text
+%        str2double(get(hObject,'String')) returns contents of Processing_Speed as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Processing_Speed_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Processing_Speed (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

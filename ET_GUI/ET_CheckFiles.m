@@ -43,11 +43,11 @@ else
 end
 
 % Create and save data filenames in the Gaze subdirectory
-gaze_dir = fullfile(dir_name, 'Gaze');
-report_dir       = fullfile(gaze_dir,'Report');
-cal_pupils_file  = fullfile(gaze_dir,'Cal_Pupils.mat');
-calibration_file = fullfile(gaze_dir,'Calibration.mat');
-gaze_pupils_file = fullfile(gaze_dir,'Gaze_Pupils.mat');
+gaze_dir         = fullfile(dir_name, 'Gaze');
+report_dir       = fullfile(gaze_dir, 'Report');
+cal_pupils_file  = fullfile(gaze_dir, 'Cal_Pupils.mat');
+calibration_file = fullfile(gaze_dir, 'Calibration.mat');
+gaze_pupils_file = fullfile(gaze_dir, 'Gaze_Pupils.mat');
 
 % Update check boxes in GUI
 set(handles.Cal_Pupils_Checkbox,  'Value', exist(cal_pupils_file,'file')  > 0);

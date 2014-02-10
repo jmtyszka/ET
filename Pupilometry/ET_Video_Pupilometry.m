@@ -20,6 +20,7 @@ function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file,
 %          02/01/2013 JMT Switch to VideoUtils for I/O
 %          04/18/2013 JMT Add glint use for moco
 %          09/26/2013  JD use VideoWriter instead of VideoRecorder
+%          02/07/2014 JMT Add multiplatform video I/O
 %
 % This file is part of ET.
 %
@@ -36,7 +37,7 @@ function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file,
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2011-2013 California Institute of Technology
+% Copyright 2011-2014 California Institute of Technology
 
 % Defaults
 if nargin < 5; C = []; end
@@ -75,9 +76,15 @@ try
             % Get true fps from conversion info file
             [v_path, v_stub, ~] = fileparts(video_infile);
             info_file = fullfile(v_path, [v_stub '_Prep.mat']);
-            load(info_file);
-            fps = info.fps_p;
-
+            
+            if exist(info_file,'file');
+                load(info_file);
+                fps = info.fps_p;
+            else
+                % Default deinterlaced NTSC (2 x 29.97 fps)
+                fps = 59.94;
+            end
+            
         otherwise
             fprintf('ET_Video_Pupilometry : *** Unknown platform (%s)\n', computer);
             return
@@ -93,17 +100,17 @@ end
 
 % Create output video object
 try
-   
+    
     switch computer
-       
-       case {'PCWIN','PCWIN64','GLNXA64'}
-           v_out = VideoWriter(video_outfile);
-           open(v_out);
-       
-       case 'MACI64'
-           v_out = VideoRecorder(video_outfile, 'Format', 'mp4', 'Size', [256 256]);
-
-   end
+        
+        case {'PCWIN','PCWIN64','GLNXA64'}
+            v_out = VideoWriter(video_outfile);
+            open(v_out);
+            
+        case 'MACI64'
+            v_out = VideoRecorder(video_outfile, 'Format', 'mp4', 'Size', [256 256]);
+            
+    end
     
 catch VIDEO_OUT_OPEN
     
@@ -123,23 +130,16 @@ fprintf('Processing %s\n', video_infile);
 % Preallocate pupil structure array covering all frames
 pupils(1:n_frames) = ET_NewPupil;
 
-% Running frame count
-fc = 1;
 
 %% MAIN LOOPS
 
 % Init running pupil structure
 p_run = p_init;
 
-% Init progress bar
-if ~isempty(handles.Progress_Bar)
-    set(handles.Progress_Bar,'Value', 0);
-end
-
-% Reinit gaze axes
-% Plot 10, 50 and 90% ticks
+% Initialize axes and running heat map
 if ~isempty(C)
-    ET_PlotGaze([], handles.Gaze_Axes, 'init');
+    % Initialize axes and running heat map
+    handles.running_hmap = ET_PlotGaze([], handles.Gaze_Axes, handles.running_hmap, 'init');
 end
 
 % Start splash
@@ -147,17 +147,15 @@ fprintf('--------------------------\n');
 fprintf('Video pupilometry started at %s\n', datestr(now));
 
 % Start timer for processed FPS
-tic;
+t0 = tic;
 
-% Loop over interlaced frame pairs of movie
-keep_going = true;
-
-while keep_going
+for fc = 1:n_frames
     
+    % Load single frame from video stream
     fr = ET_LoadFrame(v_in, fc);
     
+    % Break out of for loop if empty frame returned
     if isempty(fr)
-        % may happen in the progressive case
         break
     end
     
@@ -178,8 +176,8 @@ while keep_going
     % New pupil becomes running pupil
     p_run = p_new;
     
-    % Update progress every 10 progressive frames
-    if mod(fc,10) == 0
+    % Update progress every 30 progressive frames
+    if mod(fc, 30) == 0
         
         % Overlay pupil, glint and ROI onto frame image
         pupil_overlay = ET_OverlayPupil(fr, p_run);
@@ -187,23 +185,23 @@ while keep_going
         
         % Show calibrated gaze position in GUI if calibration model exists
         if ~isempty(C)
-            ET_PlotGaze(p_run, handles.Gaze_Axes, 'plot');
+            handles.running_hmap = ET_PlotGaze(p_run, handles.Gaze_Axes, handles.running_hmap, 'plot');
         end
         
         drawnow;
         
         % Write frame to output video file
         %%% edit JD 9/26/13
-        if ~ismac
-            writeVideo(v_out,pupil_overlay);
-        else
+        if ismac
             v_out.addFrame(pupil_overlay);
+        else
+            writeVideo(v_out,pupil_overlay);
         end
-        %%%
-        % Update progress bar
-        if ~isempty(handles.Progress_Bar)
-            set(handles.Progress_Bar,'Value', fc/n_frames);
-        end
+        
+        % Update progress panel
+        set(handles.Frame_Number,'String',sprintf('%05d / %05d', fc, n_frames));
+        set(handles.Percent_Complete,'String',sprintf('%0.1f %%', fc/n_frames * 100));
+        set(handles.Processing_Speed,'String',sprintf('%0.1f fps', fc / toc(t0)));
         
         % Show current threshold in GUI
         set(handles.Pupil_Threshold,'String',sprintf('%0.3f', p_run.thresh));
@@ -212,9 +210,11 @@ while keep_going
         p_run.thresh = NaN;
         
     end
-    
-    % Check for stop button press
+
+    % Pull handles structure from GUI
     handles = guidata(handles.Main_Figure);
+
+    % Check for stop button press
     if handles.stop_pressed
         
         % Reset stop button flag and exit loop
@@ -224,39 +224,25 @@ while keep_going
         
     end
     
-    video_mode = 'interlaced';
-    switch video_mode
-        case 'interlaced'
-            fc = fc + 1;
-        case 'progressive'
-            fc = fc + 2;
-    end
 end % Movie loop
 
 % Stop timer
-tt = toc;
-
-% Complete progress bar
-if ~isempty(handles.Progress_Bar)
-    set(handles.Progress_Bar,'Value', 1);
-end
-
-if ~ismac
-    close(v_out);
-end
+tt = toc(t0);
 
 % Report processing metrics
 fprintf('--------------------------\n');
 fprintf('Video pupilometry finished at %s\n', datestr(now));
 fprintf('Total time : %0.1f s\n', tt);
-fprintf('Mean rate  : %0.1f fps\n', n_frames * 2 / tt);
+fprintf('Mean rate  : %0.1f fps\n', n_frames / tt);
 
 % Save pupilometry results in Gaze subdirectory
-save(pupils_file,'pupils');
+save(pupils_file, 'pupils');
 
 % Clean up
-clear v_in
-clear v_out
-
-fprintf('Done\n');
+if ismac
+    clear v_in v_out
+else
+    close(v_out);
 end
+
+fprintf('ET : Finished pupilometry\n');

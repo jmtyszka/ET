@@ -4,6 +4,7 @@ function handles = ET_UpdatePosterFrame(handles)
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 02/22/2013 JMT From scratch
+%          02/08/2014 JMT Estimate pupil from frame size
 %
 % This file is part of ET.
 % 
@@ -20,7 +21,7 @@ function handles = ET_UpdatePosterFrame(handles)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2013 California Institute of Technology.
+% Copyright 2014 California Institute of Technology.
 
 % Get poster frame from GUI
 if isfield(handles,'video_poster_frame')
@@ -30,20 +31,23 @@ else
   return
 end
 
-% Setup refine options
+% Initial pupil estimate at center of frame
+p_init = ET_NewPupil;      % NaN-filled pupil structure
+p_init.px = size(fr,2)/2;  % Horizontal frame center
+p_init.py = size(fr,1)/2;  % Vertical frame center
+p_init.thresh = NaN;       % NaN forces threshold re-estimate
+
+% Default refinement options
 options = ET_GetRefinePupilOptions(handles);
 
-% Setup an initial pupil estimate (center of frame)
-p_init = ET_NewPupil;
-p_init.px = size(
-
-% Refine pupil parameter estimates
-handles.p_run = ET_RefinePupil(fr, p_init, options);
+% Refine initial pupil estimate
+p = ET_RefinePupil(fr, p_init, options);
  
 % Display ROI image with pupilometry overlay
-fr_over = ET_OverlayPupil(fr, handles.p_run);
+fr_over = ET_OverlayPupil(fr, p);
 imshow(fr_over, 'parent', handles.Eye_Video_Axes);
 
-% Save refine pupil options in handles structure
+% Save first running pupil estimate and options in handles structure
+handles.p_run = p;
 handles.refine_options = options;
 

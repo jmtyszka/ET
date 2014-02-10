@@ -91,10 +91,10 @@ else
     
 end
 
-% Set threshold to 0 if estimate is outside [0.1,0.5] range
+% Set threshold to 0 if estimate is outside [0.05,0.5] range
 % Zero threshold generates no pupil region candidates
 % Limits based on typical dark-pupil contrast video
-if th_new < 0.1 || th_new > 0.5
+if th_new < 0.05 || th_new > 0.5
   th_new = 0;
 end
 

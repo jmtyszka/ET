@@ -1,10 +1,10 @@
-function p_new = ET_RefinePupil(fr, p_old, options)
+function p_new = ET_RefinePupil(fr, p_init, options)
 % Find regions, identify pupil and fit ellipse to boundary
 %
 % ARGS:
-% fr         = grayscale video frame, range [0,1]
-% pupil_init = previous (or estimated) pupil parameters
-% options    = pupile refinement options structure
+% fr      = grayscale video frame, range [0,1]
+% p_init  = initial (previous or estimated) pupil parameters [auto estimate]
+% options = pupil refinement options structure [auto default]
 %
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
@@ -13,6 +13,7 @@ function p_new = ET_RefinePupil(fr, p_old, options)
 %          01/28/2013 JMT Return to regions method only
 %          02/07/2013 JMT Move pupil search to here
 %          02/08/2013 JMT Change to refinement of pupil
+%          02/08/2014 JMT New default p_init and options handling
 %
 % This file is part of ET.
 %
@@ -29,11 +30,11 @@ function p_new = ET_RefinePupil(fr, p_old, options)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2011-2013 California Institute of Technology
+% Copyright 2011-2014 California Institute of Technology
 
-% Require all arguments
+% Do nothing if p_init or options arguments missing
 if nargin < 3
-    p_new = p_old;
+    p_new = p_init;
     return
 end
 
@@ -46,10 +47,10 @@ fr = imadjust(fr);
 %% Segment pupil within ROI
 
 % Binarize image and update threshold (if requested)
-[bw_pupil, p_old.thresh] = ET_SegmentPupil(fr_noglints, p_old.thresh, options);
+[bw_pupil, p_init.thresh] = ET_SegmentPupil(fr_noglints, p_init.thresh, options);
 
 % Try fitting pupil ellipse to segmented image
-p_new = ET_FitPupil(bw_pupil, p_old);
+p_new = ET_FitPupil(bw_pupil, p_init);
 
 % Identify main glint
 glint = ET_IdentifyMainGlint(bw_glint, p_new, options);

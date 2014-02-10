@@ -41,8 +41,8 @@ Study_Name = Study_Name(1:(end-4));
 handles.Study_Name = Study_Name;
 
 % Fill GUI file and path fields
-set(handles.CWD,       'String', dir_name);
-set(handles.Cal_Video_File, 'String', [Study_Name '_Cal' Video_Ext]);
+set(handles.CWD,             'String', dir_name);
+set(handles.Cal_Video_File,  'String', [Study_Name '_Cal' Video_Ext]);
 set(handles.Gaze_Video_File, 'String', [Study_Name '_Gaze' Video_Ext]);
 
 % Check whether videos and analysis files exist for this selection
@@ -62,12 +62,7 @@ if get(handles.Cal_Pupils_Checkbox,'Value')
     fprintf('ET : Loading calibration pupilometry and ROI\n');
     in = load(handles.cal_pupils_file);
     handles.cal_pupils = in.pupils;
-    handles.roi = in.roi;
-    
-    % Set rotation value saved in calibration pupilometry
-    rots = [0 90 -90 180];
-    % Set rotation from GUI
-    set(handles.ROI_Rotation_Popup, 'Value',find(rots==handles.roi.rotation));
+
 end
 
 % Check for calibration model. Load calibration heatmap and fixations if
@@ -99,4 +94,4 @@ end
 handles = ET_InitVideo(handles.cal_video_path, handles);
 
 % Init gaze plot axes
-ET_PlotGaze([], handles.Gaze_Axes, 'init');
+handles.running_hmap = ET_PlotGaze([], handles.Gaze_Axes, [], 'init');
