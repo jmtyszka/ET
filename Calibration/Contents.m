@@ -7,6 +7,10 @@
 %   ET_FindFixations_Heat - Identify fixations in spatial domain using heatmap
 %   ET_FindFixations_Time - Identify fixations in time domain (dormant thread)
 
-%   ET_InitVideo          - Initialize gaze video analysis
+
 %   ET_SortFixations      - Sort fixations into appropriate grid
 %   ET_ShowCalibration    - Show calibration in GUI
+%   ET_PickFixationsOrder - If the number of fixations is neither 4 nor 9, do a manual check; 
+%   ET_ShowValidation     - Show calibration in GUI
+%   ET_PickFixations      - If the number of fixations is neither 4 nor 9, do a manual check; 
+%   ET_LoadCalFixations   - Load predefined calibration fixation order from file

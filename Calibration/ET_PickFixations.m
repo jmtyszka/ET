@@ -28,18 +28,10 @@ function fixations = ET_PickFixations(fixations,handles)
 %
 % Copyright 2013 California Institute of Technology.
 
-dbstop if error
-
-% % no need for a manual edit if the number of fixations is 4 or 9
-% if n_fix == 4 || n_fix==9
-%     return
-% end
-
 % Smoothed heatmap in GUI calibration axes
 axes(handles.Calibration_Axes);cla;
 imagesc(fixations.xv, fixations.yv, fixations.hmap);%, 'parent',handle)
 axis equal ij tight
-
 
 % Overlay possible fixations (peaks of heatmap)
 hold on

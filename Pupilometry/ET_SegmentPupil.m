@@ -60,8 +60,9 @@ if isnan(th_old)
       th_new = ET_KmeansThresh(s);
       
     case 'percentile'
-      % Pupil should occupy approx darkest 15% of pixels within ROI
-      th_new = ET_Percentile(s, 15);
+      % Pupil should occupy between 1% and 15% of the frame area
+      % Set percentile threshold at 10%
+      th_new = ET_Percentile(s, 10);
       
     case 'histogram'
       % First minimum of smoothed histogram

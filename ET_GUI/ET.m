@@ -224,8 +224,7 @@ if get(hObject,'Value') == 0
         switch lower(button)
             case 'yes'
                 % Delete gaze pupilometry data in Gaze subdirectory and GUI
-                delete(fullfile(handles.gaze_dir,'Gaze*'));
-                delete(fullfile(handles.gaze_dir,'gaze*'));
+                delete(fullfile(handles.gaze_dir,'Gaze_Pupils.*'));
                 handles.gaze_pupils = [];
                 fprintf('ET : Gaze pupilometry deleted\n');
             otherwise
@@ -268,14 +267,18 @@ if get(hObject,'Value') == 0
         'Confirm Delete','Yes','No','No');
     
     switch lower(button)
+        
         case 'yes'
+            
             % Delete calibration pupilometry data and model in Gaze subdirectory and GUI
-            delete(fullfile(handles.gaze_dir,'Cal*'));
-            delete(fullfile(handles.gaze_dir,'cal*'));
+            delete(fullfile(handles.gaze_dir,'Cal_Pupils.*'));
             handles.cal_pupils = [];
             fprintf('ET : Calibration pupilometry deleted\n');
+        
         otherwise
+            
             % Do nothing
+            
     end
     
     % Refresh file checks
@@ -321,8 +324,11 @@ if get(hObject,'Value') == 0
             if isfield(handles,'calibration')
                 handles = rmfield(handles,'calibration');
             end
+            
         otherwise
+            
             % Do nothing
+            
     end
     
     % Refresh file checks
@@ -522,7 +528,7 @@ function Stop_Button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-fprintf('ET : Stop button pressed\n');
+% Set stop_pressed flag - checked by ET_VideoPupilometry and ET_RunWorkFlow
 handles.stop_pressed = true;
 
 % Resave handles data

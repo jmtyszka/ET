@@ -26,17 +26,30 @@ function [bw_glint, fr_noglints] = ET_FindRemoveGlints(fr, options)
 % Defaults
 if nargin < 2; options.debug = false; end
 
+% Operational flags
+do_morph_glint_removal = true;
+
 % Hard fraction intensity threshold
 % Bright regions other than glints can cause problems for percentile
 % thresholding
 th = 0.9;
 bw = fr > th;
 
-% Create glint removal mask
-glint_mask = bwmorph(bw,'dilate',3);
+if do_morph_glint_removal
 
-% Remove glint signal within frame by filling from glint edges
-fr_noglints = roifill(fr, glint_mask);
+    % Create glint removal mask
+    glint_mask = bwmorph(bw,'dilate',3);
+
+    % Remove glint signal within frame by filling from glint edges
+    fr_noglints = roifill(fr, glint_mask);
+
+else
+    
+    % Simply NaN out glints
+    fr_noglints = fr;
+    fr_noglints(bw) = NaN;
+    
+end
 
 % Shrink glint regions
 bw_glint = bwmorph(bw,'erode');

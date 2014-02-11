@@ -39,7 +39,7 @@ calibration.C = [];
 calibration.fixations = [];
 
 % Reinitialize Gaze Axes
-ET_PlotGaze([], handles.Gaze_Axes, [], 'init');
+ET_PlotGaze([], handles.Gaze_Axes, []);
 
 %% Calibration in video frame of reference
 

@@ -12,7 +12,6 @@ function ET_ShowCalibration(handles)
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 06/27/2013 JMT From scratch
-%                     JMT Switch to showing calibration without edits
 %
 % This file is part of ET.
 % 
@@ -39,13 +38,10 @@ fy        = handles.calibration.fy;
 fixations = handles.calibration.fixations;
 
 % Smoothed heatmap in GUI calibration axes
-axes(handles.Calibration_Axes);cla;
-%X=(handles.cal_pupils(1).rx1-handles.cal_pupils(1).rx0+1);
-%Y=(handles.cal_pupils(1).ry1-handles.cal_pupils(1).ry0+1);
-%xlim([floor(X/4) ceil(3*X/4)]);
-%ylim([floor(Y/4) ceil(3*Y/4)]);
-imagesc(fixations.xv, fixations.yv, fixations.hmap);%, 'parent', handles.Calibration_Axes)
-axis equal ij;axis manual;hold on
+axes(handles.Calibration_Axes); cla;
+imagesc(fixations.xv, fixations.yv, fixations.hmap);
+axis equal ij manual off
+hold on
 
 % Overlay calibration points
 for fc = 1:length(fx)

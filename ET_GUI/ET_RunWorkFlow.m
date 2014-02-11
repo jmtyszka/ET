@@ -26,26 +26,24 @@ function ET_RunWorkFlow(handles)
 %
 % Copyright 2012-2014 California Institute of Technology
 
-dbstop if error
-
 fprintf('\n');
 fprintf('----------------------------\n');
 fprintf('ET : Starting workflow at %s\n', datestr(now));
 
+% Refresh file existance checkboxes in GUI
+handles = ET_CheckFiles(handles);
+
 %% Calibration pupilometry
-
-% Check to see if the calibration pupilometry structure has been created
-% and filled
-
+% Check to see if the calibration model has been created and filled
 do_cal_pupils = false;
 
 if isfield(handles,'cal_pupils')
     if isempty(handles.cal_pupils)
-        % cal_pupils exists but is empty - run cal pupilometry
+        % calibration exists but is empty - run calibration
         do_cal_pupils = true;
     end
 else
-    % cal_pupils doesn't exist - run cal pupilometry
+    % calibration doesn't exist - run calibration
     do_cal_pupils = true;
 end
 
@@ -66,7 +64,7 @@ if do_cal_pupils
     video_outfile = fullfile(handles.gaze_dir,'Cal_Pupils');
     
     % Run pupilometry on calibration video
-    cal_pupils = ET_Video_Pupilometry(...
+    [cal_pupils, stop_pressed] = ET_Video_Pupilometry(...
         video_infile,...
         video_outfile, ...
         handles.cal_pupils_file, ...
@@ -76,6 +74,11 @@ if do_cal_pupils
     
     % Save calibration pupils in GUI
     handles.cal_pupils = cal_pupils;
+    
+    % Check for stop button press 
+    if stop_pressed
+        return
+    end
     
     % Update GUI checks
     handles = ET_CheckFiles(handles);
@@ -163,7 +166,7 @@ if do_gaze_pupils
     
     video_outfile = fullfile(handles.gaze_dir,'Gaze_Pupils');
     
-    gaze_pupils = ET_Video_Pupilometry(...
+    [gaze_pupils, stop_pressed] = ET_Video_Pupilometry(...
         video_infile,...
         video_outfile, ...
         handles.cal_pupils_file, ...
@@ -173,6 +176,11 @@ if do_gaze_pupils
 
     % Save gaze pupils in GUI
     handles.gaze_pupils = gaze_pupils;
+    
+    % Check for stop button press 
+    if stop_pressed
+        return
+    end
     
     % Update GUI checks
     handles = ET_CheckFiles(handles);

@@ -4,9 +4,11 @@ function ET_PlotCalibration(px, py, calibration, plot_stub, VID, plotheatmap)
 % USAGE : ET_PlotCalibration(px, py, C, fx, fy, plot_file)
 %
 % ARGS:
-% px, py    = pupile centroids in video or glint FoR
-% C         = calibration matrix in video or glint FoR
-% plot_file = output filename for plot (PNG image)
+% px, py      = pupile centroids in video or glint FoR
+% C           = calibration matrix in video or glint FoR
+% plot_stub   = output filestub for plot (PNG image)
+% VID         = video frame underlay
+% plotheatmap = plot heat map flag [true]
 %
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech

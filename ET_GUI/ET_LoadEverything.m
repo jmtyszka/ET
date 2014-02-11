@@ -25,7 +25,6 @@ function handles = ET_LoadEverything(handles)
 
 % Open a file browser
 % edit JD 9/27/13 added .mp4
-% 
 [fname, dir_name] = uigetfile({'*.mp4','MPEG-4/H264 Videos'},...
     'Select calibration video file');
 if isequal(fname,0) || isequal(dir_name,0)
@@ -94,4 +93,4 @@ end
 handles = ET_InitVideo(handles.cal_video_path, handles);
 
 % Init gaze plot axes
-handles.running_hmap = ET_PlotGaze([], handles.Gaze_Axes, [], 'init');
+handles.running_hmap = ET_PlotGaze([], handles.Gaze_Axes, []);

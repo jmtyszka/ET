@@ -1,7 +1,7 @@
-function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file, p_init, C, handles)
+function [pupils, stop_pressed] = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file, p_init, C, handles)
 % Perform pupilometry on all frames of a video
 %
-% USAGE : pupils = ET_Video_Pupilometry(video_infile, pupils_file, video_outfile, p_init, C, handles)
+% USAGE : [pupils, stop_pressed] = ET_Video_Pupilometry(video_infile, pupils_file, video_outfile, p_init, C, handles)
 %
 % - find pupil and fit ellipse
 % - find main glint and fit circle
@@ -42,6 +42,9 @@ function pupils = ET_Video_Pupilometry(video_infile, video_outfile, pupils_file,
 % Defaults
 if nargin < 5; C = []; end
 if nargin < 6; handles = []; end
+
+% Init stop button flag
+stop_pressed = false;
 
 % Containing directory for video file
 dir_name = fileparts(video_infile);
@@ -108,7 +111,11 @@ try
             open(v_out);
             
         case 'MACI64'
-            v_out = VideoRecorder(video_outfile, 'Format', 'mp4', 'Size', [256 256]);
+            
+            % Get size of video frame from GUI
+            [frh, frw] = size(handles.video_poster_frame);
+            
+            v_out = VideoRecorder(video_outfile, 'Format', 'mp4', 'Size', [frh frw]);
             
     end
     
@@ -130,7 +137,6 @@ fprintf('Processing %s\n', video_infile);
 % Preallocate pupil structure array covering all frames
 pupils(1:n_frames) = ET_NewPupil;
 
-
 %% MAIN LOOPS
 
 % Init running pupil structure
@@ -138,8 +144,7 @@ p_run = p_init;
 
 % Initialize axes and running heat map
 if ~isempty(C)
-    % Initialize axes and running heat map
-    handles.running_hmap = ET_PlotGaze([], handles.Gaze_Axes, handles.running_hmap, 'init');
+    running_hmap = ET_PlotGaze([], handles.Gaze_Axes, []);
 end
 
 % Start splash
@@ -176,8 +181,8 @@ for fc = 1:n_frames
     % New pupil becomes running pupil
     p_run = p_new;
     
-    % Update progress every 30 progressive frames
-    if mod(fc, 30) == 0
+    % Update progress every 10 progressive frames
+    if mod(fc, 10) == 0
         
         % Overlay pupil, glint and ROI onto frame image
         pupil_overlay = ET_OverlayPupil(fr, p_run);
@@ -185,17 +190,18 @@ for fc = 1:n_frames
         
         % Show calibrated gaze position in GUI if calibration model exists
         if ~isempty(C)
-            handles.running_hmap = ET_PlotGaze(p_run, handles.Gaze_Axes, handles.running_hmap, 'plot');
+            running_hmap = ET_PlotGaze(p_run, handles.Gaze_Axes, running_hmap);
         end
         
-        drawnow;
+        % Update GUI
+        drawnow
         
         % Write frame to output video file
         %%% edit JD 9/26/13
         if ismac
             v_out.addFrame(pupil_overlay);
         else
-            writeVideo(v_out,pupil_overlay);
+            writeVideo(v_out, pupil_overlay);
         end
         
         % Update progress panel
@@ -208,20 +214,15 @@ for fc = 1:n_frames
         
         % Set threshold to NaN to refresh pupil threshold on next frame
         p_run.thresh = NaN;
-        
-    end
 
-    % Pull handles structure from GUI
-    handles = guidata(handles.Main_Figure);
-
-    % Check for stop button press
-    if handles.stop_pressed
-        
-        % Reset stop button flag and exit loop
-        fprintf('ET : Stop detected in video pupilometry - exiting\n');
-        handles.stop_pressed = false;
-        break
-        
+        % Check for stop button press
+        tmp = guidata(handles.Main_Figure);
+        if tmp.stop_pressed
+            stop_pressed = true;
+            fprintf('ET : Stop button pressed - exiting pupilometry\n');
+            return
+        end
+            
     end
     
 end % Movie loop
@@ -245,4 +246,4 @@ else
     close(v_out);
 end
 
-fprintf('ET : Finished pupilometry\n');
+fprintf('ET : Completed pupilometry\n');
