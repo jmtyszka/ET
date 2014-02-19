@@ -25,7 +25,7 @@ function handles = ET_LoadEverything(handles)
 
 % Open a file browser
 % edit JD 9/27/13 added .mp4
-[fname, dir_name] = uigetfile({'*.mp4','MPEG-4/H264 Videos'},...
+[fname, dir_name] = uigetfile({'*.mp4','MPEG-4/H264 Videos';'*.avi','VideoWriter files'},...
     'Select calibration video file');
 if isequal(fname,0) || isequal(dir_name,0)
     return

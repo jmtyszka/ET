@@ -122,7 +122,7 @@ handles.currentFrame = 1;
 
 switch computer
     
-    case 'MACI64'
+    case {'MACI64','GLNXA64'}
         
         % Use VideoUtils 1.2.4 until Matlab performance improves
         try

@@ -88,12 +88,13 @@ if get(handles.Cal_Pupils_Checkbox,'Value')
     fprintf(fd,'</tr></table>\n');
     
     % Load underlay frame from calibration video
-    if ismac
-        v_in = VideoPlayer(fullfile(gaze_dir,'Cal_Pupils.mp4'), 'Verbose', false, 'ShowTime', false);
-        fr = ET_LoadFrame(v_in, 1);
-    else
-        v_in = VideoReader(fullfile(gaze_dir,'Cal_Pupils.mp4'));
-        fr = ET_LoadFrame(v_in, 1);
+    switch computer
+        case {'MACI64'}
+            v_in = VideoPlayer(fullfile(gaze_dir,'Cal_Pupils.mp4'), 'Verbose', false, 'ShowTime', false);
+            fr = ET_LoadFrame(v_in, 1);
+        case {'PCWIN','PCWIN64','GLNXA64'}
+            v_in = VideoReader(fullfile(gaze_dir,'Cal_Pupils.avi'));
+            fr = ET_LoadFrame(v_in, 1);
     end
     
     if get(handles.Cal_Model_Checkbox,'Value')
@@ -135,14 +136,14 @@ if get(handles.Gaze_Pupils_Checkbox,'Value')
     if get(handles.Cal_Model_Checkbox,'Value')
         
         % Load gaze video frame for underlay
-        if ismac
-            v_in = VideoPlayer(fullfile(gaze_dir,'Gaze_Pupils.mp4'), 'Verbose', false, 'ShowTime', false);
-            fr = ET_LoadFrame(v_in, 1);
-        else
-            v_in = VideoReader(fullfile(gaze_dir,'Gaze_Pupils.mp4'));
-            fr = ET_LoadFrame(v_in, 1);
+        switch computer
+            case {'MACI64'}
+                v_in = VideoPlayer(fullfile(gaze_dir,'Gaze_Pupils.mp4'), 'Verbose', false, 'ShowTime', false);
+                fr = ET_LoadFrame(v_in, 1);
+            case {'PCWIN','PCWIN64','GLNXA64'}
+                v_in = VideoReader(fullfile(gaze_dir,'Gaze_Pupils.avi'));
+                fr = ET_LoadFrame(v_in, 1);
         end
-        
         % Generate fixation point overlay on gaze frame underlay
         stub = fullfile(gaze_dir,'gazecal');
         ET_PlotCalibration(px_cal, py_cal, calibration, stub, fr, 0);

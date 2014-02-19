@@ -32,7 +32,7 @@ end
 try
     switch computer
         
-        case {'GLNXA64','PCWIN','PCWIN64'}
+        case {'PCWIN','PCWIN64'} 
             
             % Read interlaced frame
             fr = double(read(v_in, handles.currentFrame));
@@ -41,7 +41,7 @@ try
             % PC and Linux frame values are in range [0,255]
             fr = fr / 255.0;
             
-        case 'MACI64'
+        case {'MACI64','GLNXA64'}
             
             % Read interlaced frame
             fr = v_in.Frame;
@@ -60,10 +60,10 @@ end
 % Increment input video frame
 switch computer
     
-    case {'GLNXA64','PCWIN','PCWIN64'}
+    case {'PCWIN','PCWIN64'} 
         handles.currentFrame = handles.currentFrame + 1;
         
-    case 'MACI64'
+    case {'MACI64','GLNXA64'}
         
         v_in + 1;
         

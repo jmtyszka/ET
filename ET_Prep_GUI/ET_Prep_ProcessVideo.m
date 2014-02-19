@@ -34,7 +34,7 @@ try
     
     switch computer
         
-        case 'MACI64'
+        case {'MACI64','GLNXA64'}
             
             % Open MPEG-2 video stream using VideoUtils library
             v_in = VideoPlayer(v_infile);
@@ -46,7 +46,7 @@ try
             % Get total interlaced frame count
             n_frames = v_in.NumFrames;
             
-        case {'PCWIN','PCWIN64','GLNXA64'}
+        case {'PCWIN','PCWIN64'}
             
             % Open video stream
             v_in = VideoReader(v_infile);
@@ -154,8 +154,8 @@ for fc = 1:n_frames-1
             v_out.addFrame(out_fr_even);
             
         case 'GLNXA64'
-            v_out.writeVideo(out_fr_odd/255);
-            v_out.writeVideo(out_fr_even/255);
+            v_out.writeVideo(out_fr_odd);
+            v_out.writeVideo(out_fr_even);
         otherwise
             
     end
@@ -207,9 +207,13 @@ save(info_file,'info');
 %% Clean up
 switch computer
     
-    case {'PCWIN','PCWIN64','GLNXA64'}
+    case {'PCWIN','PCWIN64'}
         v_in.close()
         v_out.close()
+        
+    case 'GLNXA64'
+        v_out.close()
+        clear v_in
         
     case 'MACI64'
         clear v_in v_out
