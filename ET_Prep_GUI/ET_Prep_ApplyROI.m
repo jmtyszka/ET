@@ -36,9 +36,12 @@ roi_x = str2double(get(handles.Pupil_X, 'String'));
 roi_y = str2double(get(handles.Pupil_Y, 'String'));
 roi_w = str2double(get(handles.ROI_size, 'String'));
 
-% Convert to x and y pixel ranges
+% Calculate relative ROI pixel indices for x and y
+% Note that roi_w is forced to a multiple of 8 by the ROI size callback
 hw = fix(roi_w / 2);
 w_rng = (-hw):(hw-1);
+
+% Generate x and y pixel ranges
 x_rng = w_rng + round(roi_x);
 y_rng = w_rng + round(roi_y);
 

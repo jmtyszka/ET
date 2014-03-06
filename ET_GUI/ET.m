@@ -440,7 +440,7 @@ function Pupil_Thresh_Popup_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns Pupil_Thresh_Popup contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from Pupil_Thresh_Popup
 
-% Ungray manual threshold input if Hard (option 4) selected
+% Ungray manual threshold input if Manual (option 4) selected
 switch get(hObject,'Value')
     case 4
         set(handles.Pupil_Threshold,'Enable','on');

@@ -309,6 +309,12 @@ function ROI_size_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of ROI_size as text
 %        str2double(get(hObject,'String')) returns contents of ROI_size as a double
 
+% Force ROI size to be a multiple of 8 (MPEG-4 VideoUtils limitation)
+roi_w = str2double(get(handles.ROI_size,'String'));
+roi_w = round(roi_w/8)*8;
+if roi_w < 8; roi_w = 8; end
+set(handles.ROI_size,'String',sprintf('%d',roi_w));
+
 % Update output frame using new ROI size
 ET_Prep_UpdateOutputFrame(handles);
 

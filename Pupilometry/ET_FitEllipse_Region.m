@@ -4,6 +4,7 @@ function p_fit = ET_FitEllipse_Region(bw_pupil, p_init)
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
 % DATES  : 02/28/2013 JMT Extract from ET_FitPupil.m
+%          03/06/2014 JMT Remove max circularity limit
 %
 % This file is part of ET.
 % 
@@ -20,11 +21,10 @@ function p_fit = ET_FitEllipse_Region(bw_pupil, p_init)
 %     You should have received a copy of the GNU General Public License
 %     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 %
-% Copyright 2013 California Institute of Technology.
+% Copyright 2013-2014 California Institute of Technology.
 
 % Circularity limits
 min_circularity = 0.5;
-max_circularity = 1.0;
 
 % Pupil area limits 1% to 15% of video frame area
 n_pix = numel(bw_pupil);
@@ -61,8 +61,7 @@ if n_pupils > 0
   
   % Determine which pupil candidates meet criteria
   % for both area and circularity
-  good_pupils = circularity > min_circularity & circularity < max_circularity & ...
-    area > min_area & area < max_area;
+  good_pupils = circularity > min_circularity & area > min_area & area < max_area;
   
   % Score candidates using position within bounds for area and circularity
   pupil_score = ...
