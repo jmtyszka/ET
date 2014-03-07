@@ -42,7 +42,10 @@ options = ET_GetRefinePupilOptions(handles);
 
 % Refine initial pupil estimate
 p = ET_RefinePupil(fr, p_init, options);
- 
+
+% Show current threshold in GUI
+set(handles.Pupil_Threshold,'String',sprintf('%0.3f', p.thresh));
+
 % Display ROI image with pupilometry overlay
 fr_over = ET_OverlayPupil(fr, p);
 imshow(fr_over, 'parent', handles.Eye_Video_Axes);

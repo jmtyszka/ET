@@ -113,11 +113,13 @@ catch VIDEO_WRITE_ERROR
     
 end
 
+% Setup artifact detection array
+artifact_detected = zeros(1,n_frames);
 
 % Start timer
 t0 = tic;
 
-for fc = 1:n_frames-1
+for fc = 1:n_frames
     
     % Update
     if fc > 1
@@ -129,7 +131,7 @@ for fc = 1:n_frames-1
 
     % Remove MR artifact if requested
     if do_mrclean && fc > 1
-        in_fr_pair_clean = ET_Prep_MRClean(in_fr_pair, in_fr_pair_prev, DEBUG);
+        [in_fr_pair_clean, artifact_detected(fc)] = ET_Prep_MRClean(in_fr_pair, in_fr_pair_prev, DEBUG);
     else
         in_fr_pair_clean = in_fr_pair;
     end
@@ -179,6 +181,22 @@ for fc = 1:n_frames-1
     
 end
 
+%% Post process artifact detection array
+
+% 250 ms median filter kernel
+% Note that the artifact vector is for interlaced frame pairs, not single
+% progressive frames. Use fps_i.
+k = fix(0.25 * fps_i);
+
+% Apply median filter to strip isolated false positives
+artifact_detected = medfilt1(artifact_detected, k);
+
+% Find first non-zero value in array
+t_first_artifact = find(artifact_detected,1,'first') / fps_i;
+if isempty(t_first_artifact); t_first_artifact = NaN; end
+
+fprintf('ET_Prep_ProcessVideo : first artifact detected at %0.3f s\n', t_first_artifact);
+
 %% Save ET_Prep information file for use by ET
 
 % Fill info structure
@@ -187,6 +205,7 @@ info.v_infile = v_infile;
 info.v_outfile = v_outfile;
 info.fps_i = fps_i;
 info.fps_p = fps_p;
+info.t_first_artifact = t_first_artifact;
 
 % Get ROI info from GUI
 info.roi_x = str2double(get(handles.Pupil_X, 'String'));

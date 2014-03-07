@@ -1,7 +1,7 @@
-function fr0_pair = ET_Prep_MRClean(fr_pair, fr_pair_prev, DEBUG)
+function [fr0_pair, artifact_detected] = ET_Prep_MRClean(fr_pair, fr_pair_prev, DEBUG)
 % Remove MRI RF artifacts by comparing neighboring frames
 %
-% USAGE : fr0_pair = ET_MRClean(fr_pair, fr_pair_prev)
+% USAGE : [fr0_pair, artifact_detected] = ET_MRClean(fr_pair, fr_pair_prev)
 %
 % ARGS :
 % fr_pair      = n x m x 2 matrix containing the n x m odd and even frames
@@ -38,7 +38,7 @@ function fr0_pair = ET_Prep_MRClean(fr_pair, fr_pair_prev, DEBUG)
 % Copyright 2012-2014 California Institute of Technology.
 
 % Debug flag
-if nargin < 2; DEBUG = false; end
+if nargin < 3; DEBUG = false; end
 
 % Other flags
 do_smooth  = true;
@@ -137,8 +137,17 @@ fr0_odd  = fr_odd;
 fr0_even = fr_even;
 
 % Replace rows appropriately for Type III and IV artifacts
-fr0_odd(Type_III, :) = fr_even(Type_III,:);
-fr0_even(Type_IV, :) = fr_odd(Type_IV, :);
+Type_III_Present = any(Type_III);
+if Type_III_Present
+    fr0_odd(Type_III, :) = fr_even(Type_III,:);
+end
+Type_IV_Present = any(Type_IV);
+if Type_IV_Present
+    fr0_even(Type_IV, :) = fr_odd(Type_IV, :);
+end
+
+% Set artifact flag
+artifact_detected = Type_III_Present || Type_IV_Present;
 
 % Reconstitute corrected frame pair
 fr0_pair = cat(3,fr0_odd,fr0_even);
