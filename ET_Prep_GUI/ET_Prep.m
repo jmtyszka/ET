@@ -22,7 +22,7 @@ function varargout = ET_Prep(varargin)
 
 % Edit the above text to modify the response to help ET_Prep
 
-% Last Modified by GUIDE v2.5 28-Jan-2014 16:51:23
+% Last Modified by GUIDE v2.5 21-Mar-2014 12:34:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -207,6 +207,12 @@ function Prep_Videos_Button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Check that input video has been selected
+if ~isfield(handles,'input_cal_vfile')
+    fprintf('ET_Prep : Input calibration video file not yet specified\n');
+    return
+end
+
 % Set output cal filename to orange
 set(handles.Output_Cal_Video_Name,'ForegroundColor',[1.0 0.5 0.0]);
 
@@ -330,3 +336,14 @@ function ROI_size_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in Denoise_Radio.
+function Denoise_Radio_Callback(hObject, eventdata, handles)
+% hObject    handle to Denoise_Radio (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Denoise_Radio
+
+% Do nothing - radio button is checked during video processing

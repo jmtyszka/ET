@@ -26,10 +26,10 @@ function p_fit = ET_FitEllipse_Region(bw_pupil, p_init)
 % Circularity limits
 min_circularity = 0.5;
 
-% Pupil area limits 1% to 15% of video frame area
+% Pupil area limits based on min and max diameter of 1/10 and 1/3 of frame
 n_pix = numel(bw_pupil);
-min_area = n_pix * 0.01;
-max_area = n_pix * 0.15;
+min_area = n_pix * pi * 0.05^2;
+max_area = n_pix * pi * 0.17^2;
 
 % Init fitted pupil structure
 p_fit = p_init;
@@ -49,11 +49,12 @@ if n_pupils > 0
   
   % Gather useful stats from identified regions - pupil will be one of them
   pupil_stats = regionprops(L_pupil,'Area','Centroid','Perimeter',...
-    'MajorAxisLength','MinorAxisLength','Orientation');
+    'MajorAxisLength','MinorAxisLength','Orientation','Eccentricity');
   
   % Parse stats structure
   area = [pupil_stats.Area];
   peri = [pupil_stats.Perimeter];
+  ecc  = [pupil_stats.Eccentricity];
   
   % Circularity metric : 4 * pi * area / (perimeter^2)
   % Equal to one by definition for circle
@@ -84,6 +85,7 @@ if n_pupils > 0
   p_fit.phi = -pupil_stats(best).Orientation * pi/180;
   
   p_fit.circularity = circularity(best);
+  p_fit.eccentricity = ecc(best);
   p_fit.area = area(best);
   p_fit.area_correct = pi * (p_fit.ra)^2;
   p_fit.pd_eff = 2 * sqrt(p_fit.ra * p_fit.rb);

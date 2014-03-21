@@ -14,6 +14,7 @@ function p_new = ET_RefinePupil(fr, p_init, options)
 %          02/07/2013 JMT Move pupil search to here
 %          02/08/2013 JMT Change to refinement of pupil
 %          02/08/2014 JMT New default p_init and options handling
+%          03/21/2014 JMT Move intensity scaling to ET_Prep
 %
 % This file is part of ET.
 %
@@ -38,8 +39,9 @@ if nargin < 3
     return
 end
 
+% 2014-03-21 JMT Move this to ET_Prep_ProcessVideo
 % Robust range adjustment [1,99] percentile
-fr = imadjust(fr);
+% fr = imadjust(fr);
 
 % Find and remove glints first
 [bw_glint, fr_noglints] = ET_FindRemoveGlints(fr, options);
@@ -59,3 +61,11 @@ glint = ET_IdentifyMainGlint(bw_glint, p_new, options);
 p_new.gx     = glint.gx;
 p_new.gy     = glint.gy;
 p_new.gd_eff = glint.d_eff;
+
+% Optional pupilometry metrics report to command window
+if options.debug
+   
+    fprintf('ET Pupilometry : circ = %0.3f ecc = %0.3f area = %0.1f blink = %d\n', ...
+        p_new.circularity, p_new.eccentricity, p_new.area, p_new.blink);
+    
+end

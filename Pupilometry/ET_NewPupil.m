@@ -42,6 +42,7 @@ pupil.area         = NaN;
 pupil.area_correct = NaN;
 pupil.pd_eff       = NaN;
 pupil.circularity  = NaN;
+pupil.eccentricity = NaN;
 pupil.eye_camera_angle = NaN;
 
 % Segmentation

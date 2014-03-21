@@ -126,10 +126,6 @@ if n_glints > 0
         glint.gy = gy(best_glint);
         glint.d_eff = 2 * gr(best_glint);
         
-        if options.debug
-            fprintf('ET : Best glint (r = %0.1f d = %0.1f)\n', gr(best_glint), d_good(imin));
-        end
-        
     else
         
         % No good glints found

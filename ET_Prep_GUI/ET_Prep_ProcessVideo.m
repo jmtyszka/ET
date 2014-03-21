@@ -27,8 +27,16 @@ function ET_Prep_ProcessVideo(handles, v_infile, v_outfile)
 % Debug flag
 DEBUG = false;
 
+% Fast NLM denoising parameters (empirical)
+NLM_patch_size  = 4;
+NLM_window_size = 2;
+NLM_sigma       = 0.1;
+
 % MR artifact cleanup flag
 do_mrclean = get(handles.MR_Clean_Radio,'Value');
+
+% Video denoise flag
+do_denoise = get(handles.Denoise_Radio,'Value');
 
 try
     
@@ -38,11 +46,11 @@ try
             
             % Open MPEG-2 video stream using VideoUtils library
             v_in = VideoPlayer(v_infile);
-                        
+            
             % Hardwire NTSC fps (VideoUtils doesn't read this)
             fps_i = 29.97;
             fprintf('ET_Prep_ProcessVideo : forcing NTSC frame rate to %0.2f\n', fps_i);
-
+            
             % Get total interlaced frame count
             n_frames = v_in.NumFrames;
             
@@ -50,7 +58,7 @@ try
             
             % Open video stream
             v_in = VideoReader(v_infile);
-
+            
             % Get input video parameters
             fps_i = v_in.FrameRate;
             n_frames = v_in.NumberOfFrames;
@@ -105,7 +113,7 @@ try
         otherwise
             
     end
-           
+    
 catch VIDEO_WRITE_ERROR
     
     fprintf('ET_Prep : *** Writing %s : %s\n', v_outfile, VIDEO_WRITE_ERROR.identifier);
@@ -121,28 +129,42 @@ t0 = tic;
 
 for fc = 1:n_frames
     
-    % Update
-    if fc > 1
-        in_fr_pair_prev = in_fr_pair;
-    end
-    
     % Load frame pair from interlaced video stream
     [in_fr_pair, handles] = ET_Prep_LoadFramePair(v_in, handles);
-
+    
     % Remove MR artifact if requested
     if do_mrclean && fc > 1
         [in_fr_pair_clean, artifact_detected(fc)] = ET_Prep_MRClean(in_fr_pair, in_fr_pair_prev, DEBUG);
     else
         in_fr_pair_clean = in_fr_pair;
     end
-   
+    
     % Load and process single interlaced frame
-    out_fr_pair = ET_Prep_ApplyROI(handles, in_fr_pair_clean);
+    fr_pair_roi = ET_Prep_ApplyROI(handles, in_fr_pair_clean);
     
-    % Create RGB versions of odd and even frames
-    out_fr_odd = repmat(out_fr_pair(:,:,1),[1 1 3]);
-    out_fr_even = repmat(out_fr_pair(:,:,2),[1 1 3]);
+    % Set global scaling (1st to 99th percentile of intensities)
+    if fc == 1
+        fr_int_limits = stretchlim(fr_pair_roi(:),[0 0.99]);
+        fprintf('ET_Prep : Intensity limits set to [%0.1f, %0.1f]\n', fr_int_limits(1), fr_int_limits(2));
+    end
     
+    % Separate odd and even frames
+    fr_odd_roi  = fr_pair_roi(:,:,1);
+    fr_even_roi = fr_pair_roi(:,:,2);
+    
+    % Denoise odd and even frames if requested
+    if do_denoise
+        fr_odd  = FAST_NLM_II(fr_odd_roi,  NLM_patch_size, NLM_window_size, NLM_sigma);
+        fr_even = FAST_NLM_II(fr_even_roi, NLM_patch_size, NLM_window_size, NLM_sigma);
+    end
+    
+    % Adjust intensity using robust limits from first frame
+    fr_odd  = imadjust(fr_odd,  fr_int_limits);
+    fr_even = imadjust(fr_even, fr_int_limits);
+    
+    % Create RGB versions of odd and even frames for output
+    out_fr_odd  = repmat(fr_odd,[1 1 3]);
+    out_fr_even = repmat(fr_even,[1 1 3]);
     
     % Write frame pair to file
     switch computer
@@ -164,10 +186,10 @@ for fc = 1:n_frames
     
     % Update GUI every 30 frames
     if mod(fc,30) == 1
-       
+        
         % Update raw input and output frames in GUI
         imshow(in_fr_pair(:,:,1), 'Parent', handles.Input_Frame);
-        imshow(out_fr_pair(:,:,1), 'Parent', handles.Output_Frame);
+        imshow(out_fr_odd, 'Parent', handles.Output_Frame);
         
         % Update frame progress fields in GUI
         set(handles.Processing_FPS,'String',sprintf('%0.1f', fc / toc(t0)));
@@ -178,6 +200,9 @@ for fc = 1:n_frames
         drawnow
         
     end
+    
+    % Save current frame as previous frame for next cycle
+    in_fr_pair_prev = in_fr_pair;
     
 end
 
@@ -237,9 +262,9 @@ switch computer
     case 'MACI64'
         clear v_in v_out
         
-    otherwise        
-       fprint('ET_Prep_ProcessVideo : Unknown architecture (%s)\n', computer);
-
+    otherwise
+        fprint('ET_Prep_ProcessVideo : Unknown architecture (%s)\n', computer);
+        
 end
 
 
