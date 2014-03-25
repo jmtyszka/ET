@@ -56,43 +56,78 @@ if n_glints > 0
     
     for bc = 1:n_glints
         
+        % Bounding box returned as [xmin, ymin, w, h]
         bb = rp(bc).BoundingBox;
         
-        % Bounding box returned as [xmin, ymin, w, h]
-        % JD : edit 9/28/2013
-        % TODO: check this!
-        % MT : was assuming height correct, width overestimated 
-        % JD think this is likely dependent on how the camera was placed  
-        % => be agnostic and determine which is overestimated
-        % also need to find out which half of the glint is "weightier"
-        tmp = bw_glint(floor(bb(2)):ceil(bb(2)+bb(4)),floor(bb(1)):ceil(bb(1)+bb(3)));
-        collapseh = sum(tmp,1);ssh=sum((collapseh-collapseh(end:-1:1)).^2);
-        collapsew = sum(tmp,2);ssw=sum((collapsew-collapsew(end:-1:1)).^2);
+        % Parse bounding box
+        bb_x0 = bb(1);
+        bb_y0 = bb(2);
+        bb_w  = bb(3);
+        bb_h  = bb(4);
+
+        % RESOLVED
+        % 2014-03-24 JMT,JD
+        % Adopt Julien Dubois' algorithm for judging orientation of
+        % comet-tailed glint (due to burn-in effects on old ResTech IR
+        % camera). The true glint is the head of the "comet". Once the
+        % comet orientation has been determined, the center of the head can
+        % be estimated from the height or width of the bounding box.
+        % Drop asymmetry metric - it's difficult to normalize. Just use BB
+        % aspect ratio.
         
-        if ssh > ssw,
-            % height should be trusted
-            rr=bb(4)/2;
-            tmpleft=sum(sum(tmp(:,1:floor(end/2))));
-            tmpright=sum(sum(tmp(:,ceil(end/2):end)));
-            if tmpleft>tmpright
-                gx(bc) = bb(1) + rr;
-            else
-                gx(bc) = bb(1) + bb(3) - rr;
+        % Extract binary image within glint BB
+        glint_bb = bw_glint(floor(bb_y0):ceil(bb_y0+bb_h),floor(bb_x0):ceil(bb_x0+bb_w));
+        
+        % Glint aspect ratio
+        glint_ar = bb_w / (bb_h + eps);
+        
+        % Determine most asymmetric dimension (in terms of projection)
+        if glint_ar > 1
+
+            % Horizontal comet (AR > 1)
+            
+            if options.debug
+                fprintf('GLINT : horizontal comet (%0.1f)\n', glint_ar);
             end
-            gy(bc) = bb(2) + rr;
-            gr(bc) = rr;
-         else
-            % width should be trusted
-            rr=bb(3)/2;
-            tmptop=sum(sum(tmp(1:floor(end/2),:)));
-            tmpbottom=sum(sum(tmp(ceil(end/2):end,:)));
-            if tmptop>tmpbottom
-                gy(bc) = bb(2) + rr;
+            
+            % Half height of BB - actual glint radius
+            glint_r = bb_h/2;
+            
+            tmpleft  = sum(sum(glint_bb(:,1:floor(end/2))));
+            tmpright = sum(sum(glint_bb(:,ceil(end/2):end)));
+            
+            if tmpleft > tmpright
+                gx(bc) = bb_x0 + glint_r;
             else
-                gy(bc) = bb(2) + bb(4) - rr;
+                gx(bc) = bb_x0 + bb_w - glint_r;
             end
-            gx(bc) = bb(1) + rr;
-            gr(bc) = rr;
+            
+            gy(bc) = bb_y0 + glint_r;
+            gr(bc) = glint_r;
+            
+        else
+            
+            % Vertical comet (AR <= 1)
+            
+            if options.debug
+                fprintf('GLINT : vertical comet (%0.1f)\n', glint_ar);
+            end
+            
+            % Half width of BB - actual glint radius
+            glint_r = bb_w/2;
+            
+            tmplower = sum(sum(glint_bb(:,1:floor(end/2))));
+            tmpupper = sum(sum(glint_bb(:,ceil(end/2):end)));
+            
+            if tmplower > tmpupper
+                gy(bc) = bb_y0 + glint_r;
+            else
+                gy(bc) = bb_y0 + bb_h - glint_r;
+            end
+            
+            gx(bc) = bb_x0 + glint_r;
+            gr(bc) = glint_r;
+            
         end
        
     end

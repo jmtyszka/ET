@@ -1,4 +1,4 @@
-function ET_RunWorkFlow(handles)
+function stop_pressed = ET_RunWorkFlow(handles)
 % Run complete eye tracking workflow
 % - make sure that all called functions save their own data and can be used
 %   without the GUI
@@ -26,6 +26,9 @@ function ET_RunWorkFlow(handles)
 %
 % Copyright 2012-2014 California Institute of Technology
 
+% Unset stop button flag
+stop_pressed = false;
+
 fprintf('\n');
 fprintf('----------------------------\n');
 fprintf('ET : Starting workflow at %s\n', datestr(now));
@@ -34,23 +37,27 @@ fprintf('ET : Starting workflow at %s\n', datestr(now));
 handles = ET_CheckFiles(handles);
 
 %% Calibration pupilometry
-% Check to see if the calibration model has been created and filled
-do_cal_pupils = false;
 
-if isfield(handles,'cal_pupils')
-    if isempty(handles.cal_pupils)
-        % calibration exists but is empty - run calibration
-        do_cal_pupils = true;
-    end
-else
-    % calibration doesn't exist - run calibration
-    do_cal_pupils = true;
-end
-
-% Perform calibration analysis if necessary
-if do_cal_pupils
+% Perform calibration pupilometry if necessary
+if get(handles.Cal_Pupils_Checkbox, 'Value')
     
-    % Run calibration pupilometry
+    % Cal Pupils file exists - load it
+    fprintf('ET : Loading calibration pupilometry from file\n');
+    
+    try
+        in = load(handles.cal_pupils_file);
+    catch
+        fprint('ET : *** Problem loading calibration pupils file\n');
+        return
+    end
+    
+    % Transfer pupilometry to local array
+    handles.cal_pupils = in.pupils;
+    clear in
+    
+else
+    
+    % Cal pupils file does not exist - run new pupilometry
     % Results are saved to the Gaze directory
     fprintf('ET : Running calibration pupilometry\n');
     
@@ -64,16 +71,13 @@ if do_cal_pupils
     video_outfile = fullfile(handles.gaze_dir,'Cal_Pupils');
     
     % Run pupilometry on calibration video
-    [cal_pupils, stop_pressed] = ET_Video_Pupilometry(...
+    [handles.cal_pupils, stop_pressed] = ET_Video_Pupilometry(...
         video_infile,...
         video_outfile, ...
         handles.cal_pupils_file, ...
         handles.p_run, ...
         [], ... % No calibration yet
         handles);
-    
-    % Save calibration pupils in GUI
-    handles.cal_pupils = cal_pupils;
     
     % Check for stop button press 
     if stop_pressed
@@ -82,31 +86,29 @@ if do_cal_pupils
     
     % Update GUI checks
     handles = ET_CheckFiles(handles);
-    
-else
-    
-    fprintf('ET : Calibration pupilometry already loaded\n');
-    
-end
 
+end
 
 %% Calibration model
 
-% Check to see if the calibration model has been created and filled
-do_calibration = false;
-
-if isfield(handles,'calibration')
-    if isempty(handles.calibration)
-        % calibration exists but is empty - run calibration
-        do_calibration = true;
+% Perform calibration analysis if necessary
+if get(handles.Cal_Model_Checkbox, 'Value')
+    
+    % Cal model file exists - load it
+    fprintf('ET : Loading calibration model from file\n');
+    
+    try
+        in = load(handles.calibration_file);
+    catch
+        fprintf('ET : *** Problem loading calibration model file\n');
+        return
     end
+    
+    % Transfer pupilometry to local array
+    handles.calibration = in.calibration;
+    clear in
+    
 else
-    % calibration doesn't exist - run calibration
-    do_calibration = true;
-end
-
-% Perform calibration model fitting as required
-if do_calibration
     
     % Calculate calibration model and add to handles
     fprintf('ET : Creating calibration model\n');
@@ -130,35 +132,37 @@ if do_calibration
     % Update GUI checks
     handles = ET_CheckFiles(handles);
     
-    % Display the current calibration model in the GUI
-    set(handles.Calibration_Axis_Title,'String','Calibration');
-    ET_ShowCalibration(handles);
-    
-else
-    
-    fprintf('ET : Calibration model already loaded\n');
-    
 end
+
+% Display the current calibration model in the GUI
+set(handles.Calibration_Axis_Title,'String','Calibration');
+ET_ShowCalibration(handles);
 
 %% Gaze video analysis
 
-% Check to see if gaze pupilometry structure has been created and filled
-do_gaze_pupils = false;
-
-if isfield(handles,'gaze_pupils')
-    if isempty(handles.gaze_pupils)
-        do_gaze_pupils = true;
+% Perform gaze pupilometry if necessary
+if get(handles.Gaze_Pupils_Checkbox, 'Value')
+    
+    % Cal Pupils file exists - load it
+    fprintf('ET : Loading gaze pupilometry from file\n');
+    
+    try
+        in = load(handles.gaze_pupils_file);
+    catch
+        fprint('ET : *** Problem loading calibration pupils file\n');
+        return
     end
+    
+    % Transfer pupilometry to local array
+    handles.gaze_pupils = in.pupils;
+    clear in
+    
 else
-    do_gaze_pupils = true;
-end
-
-if do_gaze_pupils
     
     % Input video file name
     video_infile = handles.gaze_video_path;
     
-    % Initialize gaze video, ROI and update GUI
+    % Initialize gaze video, initial pupil, ROI and update GUI
     handles = ET_InitVideo(video_infile, handles);
     
     set(handles.Calibration_Axis_Title,'String','Calibration');
@@ -184,10 +188,6 @@ if do_gaze_pupils
     
     % Update GUI checks
     handles = ET_CheckFiles(handles);
-    
-else
-    
-    fprintf('ET : Gaze pupilometry already loaded\n');
     
 end
 

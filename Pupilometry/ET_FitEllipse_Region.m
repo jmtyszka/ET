@@ -26,10 +26,10 @@ function p_fit = ET_FitEllipse_Region(bw_pupil, p_init)
 % Circularity limits
 min_circularity = 0.5;
 
-% Pupil area limits based on min and max diameter of 1/10 and 1/3 of frame
+% Pupil area limits based on min and max diameter of 1/10 and 1/2 of frame
 n_pix = numel(bw_pupil);
 min_area = n_pix * pi * 0.05^2;
-max_area = n_pix * pi * 0.17^2;
+max_area = n_pix * pi * 0.25^2;
 
 % Init fitted pupil structure
 p_fit = p_init;

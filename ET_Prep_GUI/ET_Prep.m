@@ -156,8 +156,8 @@ switch computer
         
 end
 
-% Show odd frame in input axes
-imshow(poster_frame_pair(:,:,1), 'parent', handles.Input_Frame);
+% Show odd frame in input axes with robust intensity scaling
+imshow(imadjust(poster_frame_pair(:,:,1)), 'parent', handles.Input_Frame);
 
 % Save first frame pair for ROI updating in GUI
 handles.poster_frame_pair = poster_frame_pair;
@@ -346,4 +346,5 @@ function Denoise_Radio_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of Denoise_Radio
 
-% Do nothing - radio button is checked during video processing
+% Refresh output frame
+ET_Prep_UpdateOutputFrame(handles);

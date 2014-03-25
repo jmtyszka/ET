@@ -1,5 +1,8 @@
 function ET_Prep_UpdateOutputFrame(handles)
 % Refresh image in output frame using current ROI parameters
+% 
+% This function is only called during initial parameter setup, not during
+% the main video processing loop.
 %
 % AUTHOR : Mike Tyszka, Ph.D.
 % PLACE  : Caltech
@@ -22,14 +25,27 @@ function ET_Prep_UpdateOutputFrame(handles)
 %
 % Copyright 2014 California Institute of Technology
 
+% Fast NLM denoising parameters (empirical)
+NLM_patch_size  = 4;
+NLM_window_size = 2;
+NLM_sigma       = 0.1;
+
 % Get raw poster frame
 if isfield(handles,'poster_frame_pair')
 
   % Deinterlace, apply ROI, etc
-  out_fr_pair = ET_Prep_ApplyROI(handles, handles.poster_frame_pair);
+  fr_pair = ET_Prep_ApplyROI(handles, handles.poster_frame_pair);
   
+  % Extract odd frame
+  fr = fr_pair(:,:,1);
+  
+  % Denoise if requested
+  if get(handles.Denoise_Radio,'Value')
+      fr  = FAST_NLM_II(fr,  NLM_patch_size, NLM_window_size, NLM_sigma);
+  end
+    
   % Show processed odd frame in GUI
-  imshow(out_fr_pair(:,:,1), 'parent', handles.Output_Frame);
+  imshow(imadjust(fr), 'parent', handles.Output_Frame);
   drawnow
   
 end

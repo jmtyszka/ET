@@ -65,7 +65,7 @@ p_new.gd_eff = glint.d_eff;
 % Optional pupilometry metrics report to command window
 if options.debug
    
-    fprintf('ET Pupilometry : circ = %0.3f ecc = %0.3f area = %0.1f blink = %d\n', ...
+    fprintf('PUPIL : circ = %0.3f ecc = %0.3f area = %0.1f blink = %d\n', ...
         p_new.circularity, p_new.eccentricity, p_new.area, p_new.blink);
     
 end

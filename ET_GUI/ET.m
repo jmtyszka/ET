@@ -121,7 +121,12 @@ function Go_Button_Callback(hObject, eventdata, handles)
 if isfield(handles,'p_run')
     
     % Run workflow
-    ET_RunWorkFlow(handles);
+    stop_pressed = ET_RunWorkFlow(handles);
+    
+    if stop_pressed
+        % Reset stop button flag
+        handles.stop_pressed = false;
+    end
     
     % Update file checks
     ET_CheckFiles(handles);

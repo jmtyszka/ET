@@ -96,7 +96,8 @@ end
 % Zero threshold generates no pupil region candidates
 % Limits based on typical dark-pupil contrast video
 if th_new < 0.05 || th_new > 0.5
-  th_new = 0;
+    fprintf('ET : *** Pupil threshold out of range [0.05,0.5] - zeroing\n');
+    th_new = 0;
 end
 
 % Binarize frame at threshold
