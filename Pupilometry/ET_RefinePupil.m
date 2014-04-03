@@ -52,7 +52,7 @@ end
 [bw_pupil, p_init.thresh] = ET_SegmentPupil(fr_noglints, p_init.thresh, options);
 
 % Try fitting pupil ellipse to segmented image
-p_new = ET_FitPupil(bw_pupil, p_init);
+p_new = ET_FitPupil(bw_pupil, p_init,fr);
 
 % Identify main glint
 glint = ET_IdentifyMainGlint(bw_glint, p_new, options);

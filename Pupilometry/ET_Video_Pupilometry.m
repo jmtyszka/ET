@@ -66,7 +66,7 @@ try
     
     switch computer
         
-        case {'PCWIN','PCWIN4','GLNXA64'}
+        case {'PCWIN','PCWIN64','GLNXA64'}
             v_in = VideoReader(video_infile);
             n_frames = v_in.NumberOfFrames;
             fps = v_in.FrameRate;
