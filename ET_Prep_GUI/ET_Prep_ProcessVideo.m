@@ -38,6 +38,9 @@ do_mrclean = get(handles.MR_Clean_Radio,'Value');
 % Video denoise flag
 do_denoise = get(handles.Denoise_Radio,'Value');
 
+% Video histogram equalization flag
+do_histeq = true;
+
 try
     
     switch computer
@@ -161,9 +164,16 @@ for fc = 1:n_frames
         fr_even = fr_even_roi;
     end
     
+
+    
     % Adjust intensity using robust limits from first frame
-    fr_odd  = imadjust(fr_odd,  fr_int_limits);
+    fr_odd  = imadjust(fr_odd, fr_int_limits);
     fr_even = imadjust(fr_even, fr_int_limits);
+    
+    if do_histeq
+        fr_odd = histeq(fr_odd,1:1000);
+        fr_even = histeq(fr_even,1:1000);
+    end
     
     % Create RGB versions of odd and even frames for output
     out_fr_odd  = repmat(fr_odd,[1 1 3]);
