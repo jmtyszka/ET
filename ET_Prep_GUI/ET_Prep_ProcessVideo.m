@@ -156,6 +156,9 @@ for fc = 1:n_frames
     if do_denoise
         fr_odd  = FAST_NLM_II(fr_odd_roi,  NLM_patch_size, NLM_window_size, NLM_sigma);
         fr_even = FAST_NLM_II(fr_even_roi, NLM_patch_size, NLM_window_size, NLM_sigma);
+    else
+        fr_odd = fr_odd_roi;
+        fr_even = fr_even_roi;
     end
     
     % Adjust intensity using robust limits from first frame
