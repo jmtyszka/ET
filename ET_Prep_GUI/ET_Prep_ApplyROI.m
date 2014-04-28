@@ -37,8 +37,14 @@ roi_y = str2double(get(handles.Pupil_Y, 'String'));
 roi_w = str2double(get(handles.ROI_size, 'String'));
 
 % Calculate relative ROI pixel indices for x and y
+[ny, nx, ~] = size(fr_pair);
+
 % Note that roi_w is forced to a multiple of 8 by the ROI size callback
 hw = fix(roi_w / 2);
+while hw>=round(roi_x) || hw>=round(roi_y) || hw>=(nx-round(roi_x)) || hw>=(ny-round(roi_y))
+    roi_w = roi_w-8;
+    hw = fix(roi_w / 2);
+end
 w_rng = (-hw):(hw-1);
 
 % Generate x and y pixel ranges
@@ -46,9 +52,9 @@ x_rng = w_rng + round(roi_x);
 y_rng = w_rng + round(roi_y);
 
 % Clamp limits
-[ny, nx, ~] = size(fr_pair);
 x_rng(x_rng < 1 | x_rng > nx)  = [];
 y_rng(y_rng < 1 | y_rng > ny)  = [];
+
 
 % Extract ROI from input frame
 fr_pair_roi = fr_pair(y_rng, x_rng, :);

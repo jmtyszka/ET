@@ -42,7 +42,7 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
+dbstop if error
 
 % --- Executes just before ET_Prep is made visible.
 function ET_Prep_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -80,7 +80,7 @@ function Select_Input_Cal_Video_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Open a file browser
-[fname, dir_name] = uigetfile({'*.mov;*.avi;*.mpg','Supported video formats'},...
+[fname, dir_name] = uigetfile({'*.mov;*.avi;*.mpg;*.mp4','Supported video formats'},...
     'Select calibration video file');
 if isequal(fname,0) || isequal(dir_name,0)
     return
@@ -99,8 +99,8 @@ handles.Study_Name = Study_Name;
 % Video file names
 input_cal_vfile   = [Study_Name '_Cal' Video_Ext];
 input_gaze_vfile  = [Study_Name '_Gaze' Video_Ext];
-output_cal_vfile  = [Study_Name, '_Cal.mp4'];
-output_gaze_vfile = [Study_Name, '_Gaze.mp4'];
+output_cal_vfile  = [Study_Name, '_prepped_Cal.mp4'];
+output_gaze_vfile = [Study_Name, '_prepped_Gaze.mp4'];
 
 % Fill GUI file and path fields
 set(handles.CWD,       'String', dir_name);

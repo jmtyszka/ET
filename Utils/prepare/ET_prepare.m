@@ -871,7 +871,7 @@ function load_video_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[handles.fname, handles.dir_name] = uigetfile({'*.mp4','Supported video formats'},...
+[handles.fname, handles.dir_name] = uigetfile({'*.mp4;*.mpg','Supported video formats'},...
     'Select eyetracking video file');
 if isequal(handles.fname,0) || isequal(handles.dir_name,0)
     return

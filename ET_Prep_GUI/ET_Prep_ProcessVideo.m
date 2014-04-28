@@ -39,7 +39,10 @@ do_mrclean = get(handles.MR_Clean_Radio,'Value');
 do_denoise = get(handles.Denoise_Radio,'Value');
 
 % Video histogram equalization flag
-do_histeq = true;
+do_histeq = false;
+
+% Intensity adjust flag
+do_intadjust = true;
 
 try
     
@@ -103,7 +106,12 @@ try
                 'Size', [ROI_w ROI_w], ...
                 'Fps', round(fps_p));
             
-        case {'PCWIN','PCWIN64','GLNXA64'}
+        case {'PCWIN','PCWIN64'}
+            v_out = VideoWriter(v_outfile,'MPEG-4');
+            set(v_out,'FrameRate',fps_p,'Quality',100);
+            open(v_out);
+            
+        case {'GLNXA64'}
             
             % Open video stream
             v_out = VideoWriter(v_outfile);
@@ -130,9 +138,14 @@ artifact_detected = zeros(1,n_frames);
 % Start timer
 t0 = tic;
 
+if ismember(computer,{'PCWIN','PCWIN64'})
+    % JD added (for Windows) -- need to reset the frame counter
+    handles.currentFrame = 1;
+end
+
 for fc = 1:n_frames
     
-    % Load frame pair from interlaced video stream
+     % Load frame pair from interlaced video stream
     [in_fr_pair, handles] = ET_Prep_LoadFramePair(v_in, handles);
     
     % Remove MR artifact if requested
@@ -146,11 +159,13 @@ for fc = 1:n_frames
     fr_pair_roi = ET_Prep_ApplyROI(handles, in_fr_pair_clean);
     
     % Set global scaling (1st to 99th percentile of intensities)
+   if do_intadjust
     if fc == 1
         fr_int_limits = stretchlim(fr_pair_roi(:),[0 0.99]);
         fprintf('ET_Prep : Intensity limits set to [%0.1f, %0.1f]\n', fr_int_limits(1), fr_int_limits(2));
     end
-    
+   end
+   
     % Separate odd and even frames
     fr_odd_roi  = fr_pair_roi(:,:,1);
     fr_even_roi = fr_pair_roi(:,:,2);
@@ -164,12 +179,12 @@ for fc = 1:n_frames
         fr_even = fr_even_roi;
     end
     
-
-    
+   if do_intadjust
     % Adjust intensity using robust limits from first frame
     fr_odd  = imadjust(fr_odd, fr_int_limits);
     fr_even = imadjust(fr_even, fr_int_limits);
-    
+   end
+   
     if do_histeq
         fr_odd = histeq(fr_odd,1:1000);
         fr_even = histeq(fr_even,1:1000);
@@ -187,8 +202,11 @@ for fc = 1:n_frames
             v_out.addFrame(out_fr_even);
             
         case {'PCWIN','PCWIN64'}
-            v_out.addFrame(out_fr_odd);
-            v_out.addFrame(out_fr_even);
+            % using built-in audiovideo toolbox
+            writeVideo(v_out,fr_odd);
+            writeVideo(v_out,fr_even);
+%             v_out.addFrame(out_fr_odd);
+%             v_out.addFrame(out_fr_even);
             
         case 'GLNXA64'
             v_out.writeVideo(out_fr_odd);
@@ -265,8 +283,12 @@ save(info_file,'info');
 switch computer
     
     case {'PCWIN','PCWIN64'}
-        v_in.close()
-        v_out.close()
+        
+        clear v_in
+        close(v_out);
+        
+%         v_in.close()
+%         v_out.close()
         
     case 'GLNXA64'
         v_out.close()
