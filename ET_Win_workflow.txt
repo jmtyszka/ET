@@ -1,0 +1,29 @@
+Procedure for windows
+
+* start Matlab
+
+* add ET toolbox to path
+
+* convert to mp4 (saves space) - remove .mpg
+	> convert_mpg2_to_mp4_win(put_video_in_folder,cleanup,fpsi)
+		- put_video_in_folder = 1 if you want to create a folder for the video
+		- cleanup = 1 if you want to delete the mpg video after conversion 
+		- fpsi = 29.97 (interlaced frame rate, hard-coded)
+	
+* cut up the video (into Calibration/Validation/Gaze)
+	> ET_cut
+	
+NOTE: Validation video is not used any more in the main interface. However, if calibration is bad, and a validation was recorded, one should have the opportunity to use the validation video as the calibration (*** add toggle switch to interface)
+
+Calibration: find start and end of 9-point calibration (end with a long blink)
+Validation : find start and end of 9-point validation
+Gaze:  find first artefact (trigger); start = first artefact - 150 (set automatically); end = end of video (set automatically)
+
+* prepare videos
+	> ET_prep  
+
+
+* do pupilometry
+	> ET
+
+
