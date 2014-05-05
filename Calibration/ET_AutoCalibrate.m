@@ -51,8 +51,8 @@ ET_PlotGaze([], handles.Gaze_Axes, []);
 % JD 10/03/13 : combining fixations detected in spatial and time domains
 % in case the heatmap doesn't suffice; since the points are picked
 % manually, it is not a problem to have too many
-fixationsH = ET_FindFixations_Heat(pupils);
-fixationsT = ET_FindFixations_Time(pupils);
+fixationsH = ET_FindFixations_Heat(pupils,size(handles.video_poster_frame,1));
+fixationsT = ET_FindFixations_Time(pupils,size(handles.video_poster_frame,1));
 fixations.x = [fixationsH.x fixationsT.x];
 fixations.y = [fixationsH.y fixationsT.y];
 fixations.hmap = fixationsH.hmap;

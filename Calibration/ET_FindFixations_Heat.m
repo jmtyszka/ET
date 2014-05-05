@@ -1,4 +1,4 @@
-function fixations = ET_FindFixations_Heat(pupils)
+function fixations = ET_FindFixations_Heat(pupils,roi_w)
 % Identify fixations in spatial domain using heatmap
 %
 % USAGE : ET_Fix = ET_FindFixations_Heat(px, py)
@@ -43,6 +43,14 @@ sigma = 3.0;
 
 px = [pupils.px];
 py = [pupils.py];
+
+% JD 05/01/14 -- added argument for window size => discard fixations that
+% are in the 1/4 border of the image
+if nargin==2
+keep = px >= roi_w/4 & px <= 3*roi_w/4 & py >= roi_w/4 & py <= 3*roi_w/4;
+px = px (keep);
+py = py (keep);
+end
 
 % Create heatmap over all frames
 [hmap, xv, yv] = ET_HeatMap(px, py, sigma, false);
